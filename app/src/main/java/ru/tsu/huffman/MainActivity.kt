@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity() {
     val DIR_SD = "MyFiles"
     val FILENAME_SD = "fileSD"
 
+    var file = FILENAME
+
 
 
     /** Called when the activity is first created.  */
@@ -49,7 +51,9 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
                 }
                 // e.g /storage/emulated/0/Documents/file.txt
+                //добавить обработку файлов
                 Log.i("MY", path) // что делать с выбранным элементом
+                file = path
             }
             chooser.show()
         }
@@ -69,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             ba[i] = data[i].toByte()
         }
         for(i in ba.indices){
-            Log.d(LOG_TAG, "ba is ${ba[i]}")
+            //Log.d(LOG_TAG, "ba is ${ba[i]}")
         }
         return ba
     }
@@ -80,7 +84,7 @@ class MainActivity : AppCompatActivity() {
             ba[i] = data[i].toByte()
         }
         for(i in ba.indices){
-            Log.d(LOG_TAG, "ba is ${ba[i]}")
+            //Log.d(LOG_TAG, "ba is ${ba[i]}")
         }
         return ba
     }
@@ -109,11 +113,14 @@ class MainActivity : AppCompatActivity() {
 
             //открываем поток для чтения
           // val fileData = ByteArray(file.length().toInt())
+            Log.d(LOG_TAG, "psh")
+            val f = File(file)
             val br = BufferedReader(
                 InputStreamReader(
-                    openFileInput(FILENAME)
+                    FileInputStream(f)
                 )
             )
+            Log.d(LOG_TAG, "psh")
             var str: String = br.readText()
             // читаем содержимое
             Log.d(LOG_TAG, "read all $str")
