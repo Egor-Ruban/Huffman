@@ -3,7 +3,9 @@ package ru.tsu.huffman
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.codekidlabs.storagechooser.StorageChooser
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
 
@@ -16,6 +18,8 @@ class MainActivity : AppCompatActivity() {
 
     val DIR_SD = "MyFiles"
     val FILENAME_SD = "fileSD"
+
+
 
     /** Called when the activity is first created.  */
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +34,25 @@ class MainActivity : AppCompatActivity() {
         btnRead.setOnClickListener {
             readFile()
         }
+        btnFilePicker.setOnClickListener {
+            val chooser = StorageChooser.Builder() // Specify context of the dialog
+                .withActivity(this)
+                .withFragmentManager(fragmentManager)
+                .withMemoryBar(true)
+                .allowCustomPath(true) // Define the mode as the FILE CHOOSER
+                .setType(StorageChooser.FILE_PICKER)
+                .build()
+            chooser.setOnSelectListener { path ->
+                if(".txt" in path){
+                    Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
+                }
+                // e.g /storage/emulated/0/Documents/file.txt
+                Log.i("MY", path) // что делать с выбранным элементом
+            }
+            chooser.show()
+        }
     }
 
     private fun byteArrayToCharArray(data : ByteArray) : CharArray{
@@ -40,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         return ca
     }
 
-    private fun stringtoByteArray(data : String) : ByteArray{
+    private fun stringToByteArray(data : String) : ByteArray{
         val ba = ByteArray(data.length)
         for(i in data.indices){
             ba[i] = data[i].toByte()
@@ -48,7 +71,17 @@ class MainActivity : AppCompatActivity() {
         for(i in ba.indices){
             Log.d(LOG_TAG, "ba is ${ba[i]}")
         }
+        return ba
+    }
 
+    private fun charArrayToByteArray(data : CharArray) : ByteArray{
+        val ba = ByteArray(data.size)
+        for(i in data.indices){
+            ba[i] = data[i].toByte()
+        }
+        for(i in ba.indices){
+            Log.d(LOG_TAG, "ba is ${ba[i]}")
+        }
         return ba
     }
 
@@ -56,10 +89,11 @@ class MainActivity : AppCompatActivity() {
         try { // отрываем поток для записи
             val bw = BufferedWriter(
                 OutputStreamWriter(
-                    openFileOutput(FILENAME, Context.MODE_PRIVATE)
+                    openFileOutput(FILENAME, Context.MODE_APPEND)
                 )
             )
-            bw.write(data)
+            bw.write(et_input.text.toString())
+            //bw.write(data)
             // закрываем поток
             bw.close()
             Log.d(LOG_TAG, "Файл записан")
@@ -83,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             var str: String = br.readText()
             // читаем содержимое
             Log.d(LOG_TAG, "read all $str")
-            stringtoByteArray(str)
+            stringToByteArray(str)
             //while (br.readLine().also({ str = it }) != null) {
             //  Log.d(LOG_TAG, str)
             //}
