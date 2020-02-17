@@ -2,6 +2,7 @@ package ru.tsu.huffman
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -20,11 +21,13 @@ class MainActivity : AppCompatActivity() {
     val FILENAME_SD = "fileSD"
 
     var file = FILENAME
+    var fileToWrite = file
 
 
 
     /** Called when the activity is first created.  */
     override fun onCreate(savedInstanceState: Bundle?) {
+        file = "${baseContext.filesDir}/$file"
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         Log.d(LOG_TAG, "start")
@@ -47,13 +50,20 @@ class MainActivity : AppCompatActivity() {
             chooser.setOnSelectListener { path ->
                 if(".txt" in path){
                     Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
+                    Log.i("MY", path) // что делать с выбранным элементом
+                    file = path
+                    val a = getDir("Huffman", Context.MODE_PRIVATE).createNewFile()
+                    Log.d(LOG_TAG, "${File(path).name} $path and $a")
+                    fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
+
+
                 } else {
                     Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
                 }
                 // e.g /storage/emulated/0/Documents/file.txt
                 //добавить обработку файлов
-                Log.i("MY", path) // что делать с выбранным элементом
-                file = path
+
+
             }
             chooser.show()
         }
@@ -90,17 +100,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun writeFile(data : CharArray) {
+        //а можно было не любиться, а поменять вывод на DataOutputStream
+        //возможно в следующей жизни...
         try { // отрываем поток для записи
+            val f = File("$fileToWrite")
+            f.createNewFile()
             val bw = BufferedWriter(
                 OutputStreamWriter(
-                    openFileOutput(FILENAME, Context.MODE_APPEND)
+                    FileOutputStream(f, false)
                 )
             )
-            bw.write(et_input.text.toString())
-            //bw.write(data)
+            //bw.write(et_input.text.toString())
+            bw.write(data)
             // закрываем поток
             bw.close()
-            Log.d(LOG_TAG, "Файл записан")
+            Log.d(LOG_TAG, "Файл записан $fileToWrite")
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -110,7 +124,6 @@ class MainActivity : AppCompatActivity() {
 
     fun readFile() {
         try {
-
             //открываем поток для чтения
           // val fileData = ByteArray(file.length().toInt())
             Log.d(LOG_TAG, "psh")
