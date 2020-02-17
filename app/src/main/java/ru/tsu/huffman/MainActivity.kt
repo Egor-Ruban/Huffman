@@ -58,7 +58,6 @@ class MainActivity : AppCompatActivity() {
             }
             chooser.show()
         }
-
     }
 
     fun writeBinFile(data : ByteArray) {
@@ -78,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun readFileBin() {
+    fun readFileBin() : ByteArray{
         try {
             //открываем поток для чтения
             val stream = DataInputStream(FileInputStream(File(fileToRead)))
@@ -86,16 +85,19 @@ class MainActivity : AppCompatActivity() {
             stream.close()
             // читаем содержимое
             Log.d(LOG_TAG, "read all ${ba[0]} ${ba[1]} ${ba[2]} ${ba[3]}")
+            return ba
         } catch (e: FileNotFoundException) {
             Log.d(LOG_TAG, "not found")
             e.printStackTrace()
+            return byteArrayOf()
         } catch (e: IOException) {
             Log.d(LOG_TAG, "IOE")
             e.printStackTrace()
+            return byteArrayOf()
         }
     }
 
-    fun readFile() { //чисто для вывода txt
+    fun readFile() : String{ //чисто для вывода txt
         try {
             val stream = BufferedReader(
                 InputStreamReader(
@@ -107,12 +109,16 @@ class MainActivity : AppCompatActivity() {
             Log.d(LOG_TAG, "read all $str")
             tv_file.visibility = View.VISIBLE
             tv_file.text = str
+            stream.close()
+            return str
         } catch (e: FileNotFoundException) {
             Log.d(LOG_TAG, "not found")
             e.printStackTrace()
+            return ""
         } catch (e: IOException) {
             Log.d(LOG_TAG, "IOE")
             e.printStackTrace()
+            return ""
         }
     }
 }
