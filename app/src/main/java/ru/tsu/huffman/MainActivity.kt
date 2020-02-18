@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         fileToWrite = fileToRead
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mainl)
-
+/*
         btn_code.setOnClickListener {
             val data = byteArrayOf(48, 49, 50, -1, 0, 51, 10, 52) // пример данных
             writeBinFile(data)
@@ -57,6 +57,21 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             chooser.show()
+        }
+     */
+        val test = "susie says it was easy"
+        val frequencyTable = Coder.getFrequency(test.toByteArray())
+        val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
+        Coder.sortFrequencyTable(smallTable)
+        val nodeArray = Coder.createNodeArray(smallTable)
+        Log.d(LOG_TAG, "${nodeArray.size}")
+        for(element in nodeArray){
+            with(element) {
+                Log.d(
+                    LOG_TAG,
+                    "$letter ${letter!!.toChar()} $frequency $leftNode $rightNode"
+                )
+            }
         }
     }
 
