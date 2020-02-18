@@ -11,6 +11,7 @@ import com.codekidlabs.storagechooser.StorageChooser
 import kotlinx.android.synthetic.main.activity_mainl.*
 import ru.tsu.huffman.Extensions.toCharArray
 import java.io.*
+import java.time.LocalDate
 
 
 class MainActivity : AppCompatActivity() {
@@ -64,15 +65,7 @@ class MainActivity : AppCompatActivity() {
         val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
         Coder.sortFrequencyTable(smallTable)
         val nodeArray = Coder.createNodeArray(smallTable)
-        Log.d(LOG_TAG, "${nodeArray.size}")
-        for(element in nodeArray){
-            with(element) {
-                Log.d(
-                    LOG_TAG,
-                    "$letter ${letter!!.toChar()} $frequency $leftNode $rightNode"
-                )
-            }
-        }
+        Log.d(LOG_TAG, "${Coder.createTree(nodeArray).frequency}") //дерево готово
     }
 
     fun writeBinFile(data : ByteArray) {

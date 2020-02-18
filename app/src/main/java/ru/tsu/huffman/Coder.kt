@@ -34,4 +34,43 @@ object Coder {
         return nodeArray
     }
 
+    fun sortNodeArray(data : ArrayList<Node>){
+        data.sortBy { it.frequency }
+    }
+
+    fun mergeNodes(data : ArrayList<Node>){
+        val new = Node(null, data[0].frequency + data[1].frequency).apply {
+            leftNode = data[0]
+            rightNode = data[1]
+        }
+        data[1] = new
+        data.removeAt(0)
+    }
+
+    fun createTree(nodeArray : ArrayList<Node>) : Node{
+        while(nodeArray.size > 1){
+            mergeNodes(nodeArray)
+            sortNodeArray(nodeArray)
+        }
+        return nodeArray[0]
+    }
+
+    fun logNodeArray(nodeArray: ArrayList<Node>){
+        for(element in nodeArray){
+            with(element) {
+                if(letter != null) {
+                    Log.d(
+                        "my",
+                        "$letter ${letter.toChar()} $frequency $leftNode $rightNode"
+                    )
+                } else {
+                    Log.d(
+                        "my",
+                        "$letter  $frequency $leftNode $rightNode"
+                    )
+                }
+            }
+        }
+    }
+
 }
