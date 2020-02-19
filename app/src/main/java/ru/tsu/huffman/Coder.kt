@@ -1,5 +1,6 @@
 package ru.tsu.huffman
 
+import android.util.ArrayMap
 import android.util.Log
 import java.util.ArrayList
 
@@ -71,6 +72,21 @@ object Coder {
                 }
             }
         }
+    }
+
+    fun createCodeTable(root : Node) : Array<Pair<Byte, String>>{
+        return explorePath("",root,arrayOf<Pair<Byte, String>>())
+    }
+
+    private fun explorePath(currentCode : String, node : Node, resMap : Array<Pair<Byte, String>>) : Array<Pair<Byte, String>>{
+        var res = resMap
+        if(node.leftNode == null){
+            res = resMap.plusElement(node.letter!! to currentCode)
+        } else {
+            res = explorePath("${currentCode}0", node.leftNode!!, res)
+            res = explorePath("${currentCode}1", node.rightNode!!, res)
+        }
+        return res
     }
 
 }

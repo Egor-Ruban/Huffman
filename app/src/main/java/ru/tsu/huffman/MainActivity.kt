@@ -59,13 +59,19 @@ class MainActivity : AppCompatActivity() {
             }
             chooser.show()
         }
-     */
+     */ //todo в конце убрать комментарий
         val test = "susie says it was easy"
         val frequencyTable = Coder.getFrequency(test.toByteArray())
         val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
         Coder.sortFrequencyTable(smallTable)
         val nodeArray = Coder.createNodeArray(smallTable)
-        Log.d(LOG_TAG, "${Coder.createTree(nodeArray).frequency}") //дерево готово
+        val root = Coder.createTree(nodeArray)
+        Log.d(LOG_TAG, "${root.frequency}") //дерево готово
+        val codeTable = Coder.createCodeTable(root)
+        for(i in codeTable){
+            Log.d(LOG_TAG, "${i.first.toChar()} & ${i.second}")
+        }
+        //todo начать шифровать (жопа)
     }
 
     fun writeBinFile(data : ByteArray) {
