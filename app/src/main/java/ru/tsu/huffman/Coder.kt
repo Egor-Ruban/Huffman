@@ -10,7 +10,7 @@ object Coder {
     fun getFrequency(data : ByteArray) : IntArray{
         val frequencyTable = IntArray(256){0}
         for(byte in data){
-            frequencyTable[byte.toInt()]++
+            frequencyTable[byte.toUByte().toInt()]++
         }
         return frequencyTable
     }
@@ -96,8 +96,9 @@ object Coder {
         var usedBits = 0
         //var freeBits = 0
         var currentByte = -1
-        
+        freeBits = 0
         for(byte in inputText){
+
             var toCode = codeTable.get(byte) //кайф
             for(bit in toCode!!){
                 if(freeBits == 0){
@@ -112,29 +113,36 @@ object Coder {
                 usedBits++
                 freeBits--
             }
-            Log.d("my",toCode)
         }
-        for(byte in outputText){
-            Log.d("my", "${byte.toUByte()}")
-        }
-        Log.d("my", "freeBits $freeBits")
         return outputText
     }
 
     fun createHeader(nodeArray: Array<Pair<Byte, Int>>) : ByteArray{
         var header = byteArrayOf()
         header = header.plus(nodeArray.size.toByte())
-        Log.d("my", "freeBits $freeBits")
         header = header.plus(freeBits.toByte())
         for(pair in nodeArray){
             header = header.plus(pair.first)
             header = header.plus((pair.second shr 8).toByte())
             header = header.plus((pair.second).toByte())
         }
-        for(head in header){
-            Log.d("my", "header $head")
-        }
+
         return header
     }
 
+    fun compress(inputText: ByteArray) : ByteArray{
+        val frequencyTable = Coder.getFrequency(inputText)
+        val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
+        Coder.sortFrequencyTable(smallTable)
+        val nodeArray = Coder.createNodeArray(smallTable)
+        val root = Coder.createTree(nodeArray)
+        val codeTable = Coder.createCodeTable(root)
+
+        val compressedText = Coder.codeArray(inputText, codeTable)
+        val header = Coder.createHeader(smallTable) //технически уже можно кодировать
+        var outputText = byteArrayOf()
+        outputText = outputText.plus(header)
+        outputText = outputText.plus(compressedText)
+        return outputText
+    }
 }

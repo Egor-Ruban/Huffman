@@ -26,10 +26,30 @@ class MainActivity : AppCompatActivity() {
         fileToWrite = fileToRead
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mainl)
-/*
+
         btn_code.setOnClickListener {
-            val data = byteArrayOf(48, 49, 50, -1, 0, 51, 10, 52) // пример данных
-            writeBinFile(data)
+            val chooser = StorageChooser.Builder()
+                .withActivity(this)
+                .withFragmentManager(fragmentManager)
+                .withMemoryBar(true)
+                .allowCustomPath(true)
+                .setType(StorageChooser.FILE_PICKER)
+                .build()
+
+            chooser.setOnSelectListener { path ->
+                if(".txt" in path){
+                    Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
+                    fileToRead = path
+                    fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
+                    val inputText = readFileBin()
+                    writeBinFile(Coder.compress(inputText))
+                } else if(".hfm" in path){
+                    Toast.makeText(this,"hfm",Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
+                }
+            }
+            chooser.show()
         }
 
         btn_decode.setOnClickListener {
@@ -59,24 +79,7 @@ class MainActivity : AppCompatActivity() {
             }
             chooser.show()
         }
-     */ //todo в конце убрать комментарий
-        val test = "susie says it was easy"
-        val frequencyTable = Coder.getFrequency(test.toByteArray())
-        val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
-        Coder.sortFrequencyTable(smallTable)
-        val nodeArray = Coder.createNodeArray(smallTable)
-        val root = Coder.createTree(nodeArray)
-        Log.d(LOG_TAG, "${root.frequency}") //дерево готово
-        val codeTable = Coder.createCodeTable(root)
-        for(i in codeTable){
-            Log.d(LOG_TAG, "${i.key.toChar()} & ${i.value}")
-        }
 
-        Coder.codeArray(test.toByteArray(),codeTable)
-        Coder.createHeader(smallTable) //технически уже можно кодировать
-        //todo начать шифровать (жопа
-        val int : Int = 1724
-        Log.d(LOG_TAG, "${int.toUByte()}" )
     }
 
     fun writeBinFile(data : ByteArray) {
