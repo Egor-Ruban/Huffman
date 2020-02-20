@@ -9,7 +9,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.codekidlabs.storagechooser.StorageChooser
-import kotlinx.android.synthetic.main.activity_mainl.*
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
 
 class MainActivity : AppCompatActivity() {
@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_mainl)
+        setContentView(R.layout.activity_main)
 
 
         tv_file.text = savedInstanceState?.getString(SHOWN_TEXT)
@@ -90,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         } else if(".hfm" in path){
             Toast.makeText(this,"maybe you wanted to decompress it?",Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show() //replace User
+        showError()
         }
     }
 
@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity() {
             val outputText = Decoder.decode(inputText)
             writeBinFile(outputText)
         } else {
-            Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show() //replace User
+            showError()
         }
     }
 
@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity() {
             fileToRead = path
             readFile()
         } else {
-            Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show() // replace User
+            showError()
         }
     }
 
@@ -122,7 +122,7 @@ class MainActivity : AppCompatActivity() {
             val f = File(fileToWrite)
             f.createNewFile()
             val stream = DataOutputStream(
-                    FileOutputStream(f, false)
+                FileOutputStream(f, false)
             )
             stream.write(data)
             stream.close()
@@ -181,5 +181,10 @@ class MainActivity : AppCompatActivity() {
 
         outState.putString(SHOWN_TEXT, tv_file.text.toString())
         outState.putInt(IS_VISIBLE_TEXT, tv_file.visibility)
+    }
+
+    private fun showError(){
+        val newDialog = MyAlertDialogFragment.newInstance()
+        newDialog.show(supportFragmentManager, "dialog")
     }
 }
