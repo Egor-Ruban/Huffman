@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         fileToWrite = fileToRead
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mainl)
-
+        Log.d(LOG_TAG, "${10 shr 2}")
         btn_code.setOnClickListener {
             val chooser = StorageChooser.Builder()
                 .withActivity(this)
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
                     fileToRead = path
                     fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
-                    val inputText = readFileBin()
+                    val inputText = readFile().toByteArray()
                     writeBinFile(Coder.compress(inputText))
                 } else if(".hfm" in path){
                     Toast.makeText(this,"hfm",Toast.LENGTH_SHORT).show()
@@ -53,7 +53,28 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn_decode.setOnClickListener {
-            readFileBin()
+            val chooser = StorageChooser.Builder()
+                .withActivity(this)
+                .withFragmentManager(fragmentManager)
+                .withMemoryBar(true)
+                .allowCustomPath(true)
+                .setType(StorageChooser.FILE_PICKER)
+                .build()
+
+            chooser.setOnSelectListener { path ->
+                if(".txt" in path){
+                    Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
+                } else if(".hfm" in path){
+                    fileToRead = path
+                    fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", ".txt")}"
+                    val inputText = readFileBin()
+                    val outputText = Decoder.decode(inputText)
+                    writeBinFile(outputText)
+                } else {
+                    Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
+                }
+            }
+            chooser.show()
         }
 
         btn_read.setOnClickListener {
@@ -69,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                 if(".txt" in path){
                     Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
                     fileToRead = path
-                    fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
+                    //fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
                     readFile()
                 } else if(".hfm" in path){
                     Toast.makeText(this,"hfm",Toast.LENGTH_SHORT).show()

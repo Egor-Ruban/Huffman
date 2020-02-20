@@ -2,13 +2,17 @@ package ru.tsu.huffman
 
 import android.util.ArrayMap
 import android.util.Log
+import android.widget.Toast
 import java.util.ArrayList
 import kotlin.experimental.or
 
 object Coder {
     var freeBits = 0
+    private var size = 1
     fun getFrequency(data : ByteArray) : IntArray{
         val frequencyTable = IntArray(256){0}
+        size = data.size
+        Log.d("my","size is $size" )
         for(byte in data){
             frequencyTable[byte.toUByte().toInt()]++
         }
@@ -17,6 +21,7 @@ object Coder {
 
     fun minimizeFrequencyTable(fullTable : IntArray) : Array<Pair<Byte, Int>>{
         var smallTable = arrayOf<Pair<Byte, Int>>()
+        Log.d("my","size is $size" )
         for(byte in fullTable.indices){
             if(fullTable[byte] > 0) {
                 smallTable = smallTable.plusElement(byte.toByte() to fullTable[byte])
@@ -129,7 +134,7 @@ object Coder {
 
         return header
     }
-
+//переписать создание загголовка на разные длины файлов
     fun compress(inputText: ByteArray) : ByteArray{
         val frequencyTable = Coder.getFrequency(inputText)
         val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
@@ -143,6 +148,8 @@ object Coder {
         var outputText = byteArrayOf()
         outputText = outputText.plus(header)
         outputText = outputText.plus(compressedText)
+        val ratio : Double = size.toDouble()/outputText.size.toDouble()
+        Toast.makeText(App.applicationContext(),"compress ratio $ratio", Toast.LENGTH_LONG ).show()
         return outputText
     }
 }
