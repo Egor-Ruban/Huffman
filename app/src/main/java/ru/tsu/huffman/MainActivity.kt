@@ -9,24 +9,27 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.codekidlabs.storagechooser.StorageChooser
 import kotlinx.android.synthetic.main.activity_mainl.*
-import ru.tsu.huffman.Extensions.toCharArray
 import java.io.*
 import java.time.LocalDate
 
 
 class MainActivity : AppCompatActivity() {
 
-    val LOG_TAG = "myLogs"
+    private val LOG_TAG = "myLogs"
 
-    var fileToRead = "default.txt"
-    var fileToWrite = fileToRead
+    private var fileToRead = "default.txt"
+    private var fileToWrite = fileToRead
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        fileToRead = "$filesDir/$fileToRead"
-        fileToWrite = fileToRead
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mainl)
-        Log.d(LOG_TAG, "${10 shr 2}")
+
+        fileToRead = "$filesDir/$fileToRead"
+        fileToWrite = fileToRead
+        initButtons()
+    }
+
+    private fun initButtons(){
         btn_code.setOnClickListener {
             val chooser = StorageChooser.Builder()
                 .withActivity(this)
@@ -37,17 +40,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             chooser.setOnSelectListener { path ->
-                if(".txt" in path){
-                    Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
-                    fileToRead = path
-                    fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
-                    val inputText = readFile().toByteArray()
-                    writeBinFile(Coder.compress(inputText))
-                } else if(".hfm" in path){
-                    Toast.makeText(this,"hfm",Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
-                }
+                compressText(path)
             }
             chooser.show()
         }
@@ -62,17 +55,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             chooser.setOnSelectListener { path ->
-                if(".txt" in path){
-                    Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
-                } else if(".hfm" in path){
-                    fileToRead = path
-                    fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", ".txt")}"
-                    val inputText = readFileBin()
-                    val outputText = Decoder.decode(inputText)
-                    writeBinFile(outputText)
-                } else {
-                    Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
-                }
+                decompressHfm(path)
             }
             chooser.show()
         }
@@ -87,23 +70,49 @@ class MainActivity : AppCompatActivity() {
                 .build()
 
             chooser.setOnSelectListener { path ->
-                if(".txt" in path){
-                    Toast.makeText(this, "txt", Toast.LENGTH_SHORT).show()
-                    fileToRead = path
-                    //fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
-                    readFile()
-                } else if(".hfm" in path){
-                    Toast.makeText(this,"hfm",Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show()
-                }
+                showText(path)
             }
             chooser.show()
         }
-
     }
 
-    fun writeBinFile(data : ByteArray) {
+    private fun compressText(path : String){
+        if(".txt" in path){
+            fileToRead = path
+            fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
+            val inputText = readFile().toByteArray()
+            writeBinFile(Coder.compress(inputText))
+        } else if(".hfm" in path){
+            Toast.makeText(this,"maybe you wanted to decompress it?",Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show() //replace User
+        }
+    }
+
+    private fun decompressHfm(path: String){
+        if(".txt" in path){
+            Toast.makeText(this, "maybe you wanted to compress it?", Toast.LENGTH_SHORT).show()
+        } else if(".hfm" in path){
+            fileToRead = path
+            fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", ".txt")}"
+            val inputText = readFileBin()
+            val outputText = Decoder.decode(inputText)
+            writeBinFile(outputText)
+        } else {
+            Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show() //replace User
+        }
+    }
+
+    private fun showText(path: String){
+        if(".txt" in path){
+            fileToRead = path
+            readFile()
+        } else {
+            Toast.makeText(this,"wrong type",Toast.LENGTH_SHORT).show() // replace User
+        }
+    }
+
+    private fun writeBinFile(data : ByteArray) {
         try {
             val f = File(fileToWrite)
             f.createNewFile()
@@ -120,14 +129,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun readFileBin() : ByteArray{
+    private fun readFileBin() : ByteArray{
         try {
             //открываем поток для чтения
             val stream = DataInputStream(FileInputStream(File(fileToRead)))
-            var ba = stream.readBytes()
+            val ba = stream.readBytes()
             stream.close()
-            // читаем содержимое
-            Log.d(LOG_TAG, "read all ${ba[0]} ${ba[1]} ${ba[2]} ${ba[3]}")
             return ba
         } catch (e: FileNotFoundException) {
             Log.d(LOG_TAG, "not found")
@@ -140,16 +147,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun readFile() : String{ //чисто для вывода txt
+    private fun readFile() : String{ //чисто для вывода txt
         try {
             val stream = BufferedReader(
                 InputStreamReader(
                     FileInputStream(File(fileToRead))
                 )
             )
-            var str: String = stream.readText()
+            val str: String = stream.readText()
             // читаем содержимое
-            Log.d(LOG_TAG, "read all $str")
             tv_file.visibility = View.VISIBLE
             tv_file.text = str
             stream.close()

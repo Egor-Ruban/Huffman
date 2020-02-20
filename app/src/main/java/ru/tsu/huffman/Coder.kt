@@ -7,63 +7,63 @@ import java.util.ArrayList
 import kotlin.experimental.or
 
 object Coder {
-    var freeBits = 0
+
+    private var freeBits = 0
     private var size = 1
-    fun getFrequency(data : ByteArray) : IntArray{
-        val frequencyTable = IntArray(256){0}
+    private var frequencyTable : Array<Pair<Byte, Int>> = arrayOf()
+    private var nodeArray : ArrayList<Node> = arrayListOf()
+    private lateinit var root : Node
+    private var codeTable: Map<Byte, String> = mapOf()
+
+    private fun getFrequency(data : ByteArray) : IntArray{
+        val fullFrequencyTable = IntArray(256){0}
         size = data.size
-        Log.d("my","size is $size" )
         for(byte in data){
-            frequencyTable[byte.toUByte().toInt()]++
+            fullFrequencyTable[byte.toUByte().toInt()]++
         }
-        return frequencyTable
+        return fullFrequencyTable
     }
 
-    fun minimizeFrequencyTable(fullTable : IntArray) : Array<Pair<Byte, Int>>{
-        var smallTable = arrayOf<Pair<Byte, Int>>()
-        Log.d("my","size is $size" )
+    private fun minimizeFrequencyTable(fullTable : IntArray){
         for(byte in fullTable.indices){
             if(fullTable[byte] > 0) {
-                smallTable = smallTable.plusElement(byte.toByte() to fullTable[byte])
+                frequencyTable = frequencyTable.plusElement(byte.toByte() to fullTable[byte])
             }
         }
-        return smallTable
     }
 
-    fun sortFrequencyTable(table : Array<Pair<Byte, Int>>){
-        table.sortBy { it.second }
+    private fun sortFrequencyTable(){
+        frequencyTable.sortBy { it.second }
     }
 
-    fun createNodeArray(table : Array<Pair<Byte, Int>>) : ArrayList<Node>{
-        var nodeArray = arrayListOf<Node>()
-        for(element in table){
+    private fun createNodeArray(){
+        for(element in frequencyTable){
             nodeArray.add(Node(letter = element.first, freq = element.second))
         }
-        return nodeArray
     }
 
-    fun sortNodeArray(data : ArrayList<Node>){
-        data.sortBy { it.frequency }
+    private fun sortNodeArray(){
+        nodeArray.sortBy { it.frequency }
     }
 
-    fun mergeNodes(data : ArrayList<Node>){
-        val new = Node(null, data[0].frequency + data[1].frequency).apply {
-            leftNode = data[0]
-            rightNode = data[1]
+    private fun mergeNodes(){
+        val new = Node(null, nodeArray[0].frequency + nodeArray[1].frequency).apply {
+            leftNode = nodeArray[0]
+            rightNode = nodeArray[1]
         }
-        data[1] = new
-        data.removeAt(0)
+        nodeArray[1] = new
+        nodeArray.removeAt(0)
     }
 
-    fun createTree(nodeArray : ArrayList<Node>) : Node{
+    private fun createTree(){
         while(nodeArray.size > 1){
-            mergeNodes(nodeArray)
-            sortNodeArray(nodeArray)
+            mergeNodes()
+            sortNodeArray()
         }
-        return nodeArray[0]
+        root = nodeArray[0]
     }
 
-    fun logNodeArray(nodeArray: ArrayList<Node>){
+    private fun logNodeArray(){
         for(element in nodeArray){
             with(element) {
                 if(letter != null) {
@@ -81,75 +81,75 @@ object Coder {
         }
     }
 
-    fun createCodeTable(root : Node) : Map<Byte, String>{
-        return explorePath("",root, mapOf())
+    private fun createCodeTable(){
+        explorePath("", root)
     }
 
-    private fun explorePath(currentCode : String, node : Node, resMap : Map<Byte, String>) : Map<Byte, String>{
-        var res = resMap
+    private fun explorePath(currentCode : String, node : Node){
         if(node.leftNode == null){
-            res = resMap.plus(node.letter!! to currentCode)
+            codeTable = codeTable.plus(node.letter!! to currentCode)
         } else {
-            res = explorePath("${currentCode}0", node.leftNode!!, res)
-            res = explorePath("${currentCode}1", node.rightNode!!, res)
+            explorePath("${currentCode}0", node.leftNode!!)
+            explorePath("${currentCode}1", node.rightNode!!)
         }
-        return res
     }
 
-    fun codeArray(inputText : ByteArray, codeTable: Map<Byte, String>) : ByteArray{
+    private fun codeArray(inputText : ByteArray) : ByteArray{
         var outputText = byteArrayOf()
-        var usedBits = 0
-        //var freeBits = 0
         var currentByte = -1
-        freeBits = 0
         for(byte in inputText){
-
-            var toCode = codeTable.get(byte) //кайф
+            val toCode = codeTable[byte] //кайф
             for(bit in toCode!!){
                 if(freeBits == 0){
                     outputText = outputText.plus(0)
-                    usedBits = 0
                     freeBits = 8
                     currentByte++
                 }
                 if(bit == '1') {
                     outputText[currentByte] = outputText[currentByte].or((1 shl(freeBits-1)).toByte())
                 }
-                usedBits++
                 freeBits--
             }
         }
         return outputText
     }
 
-    fun createHeader(nodeArray: Array<Pair<Byte, Int>>) : ByteArray{
+    private fun createHeader() : ByteArray{
         var header = byteArrayOf()
-        header = header.plus(nodeArray.size.toByte())
+        header = header.plus(frequencyTable.size.toByte())
         header = header.plus(freeBits.toByte())
-        for(pair in nodeArray){
+        for(pair in frequencyTable){
             header = header.plus(pair.first)
             header = header.plus((pair.second shr 8).toByte())
             header = header.plus((pair.second).toByte())
         }
-
         return header
     }
-//переписать создание загголовка на разные длины файлов
-    fun compress(inputText: ByteArray) : ByteArray{
-        val frequencyTable = Coder.getFrequency(inputText)
-        val smallTable = Coder.minimizeFrequencyTable(frequencyTable)
-        Coder.sortFrequencyTable(smallTable)
-        val nodeArray = Coder.createNodeArray(smallTable)
-        val root = Coder.createTree(nodeArray)
-        val codeTable = Coder.createCodeTable(root)
 
-        val compressedText = Coder.codeArray(inputText, codeTable)
-        val header = Coder.createHeader(smallTable) //технически уже можно кодировать
+    fun compress(inputText: ByteArray) : ByteArray{
+        init()
+        val frequencyTable = getFrequency(inputText)
+        minimizeFrequencyTable(frequencyTable)
+        sortFrequencyTable()
+        createNodeArray()
+        createTree()
+        createCodeTable()
+
+        val compressedText = codeArray(inputText)
+        val header = createHeader()
         var outputText = byteArrayOf()
         outputText = outputText.plus(header)
         outputText = outputText.plus(compressedText)
         val ratio : Double = size.toDouble()/outputText.size.toDouble()
         Toast.makeText(App.applicationContext(),"compress ratio $ratio", Toast.LENGTH_LONG ).show()
         return outputText
+    }
+
+    private fun init(){
+        freeBits = 0
+        size = 1
+        frequencyTable = arrayOf()
+        nodeArray = arrayListOf()
+        codeTable = mapOf()
     }
 }
