@@ -69,9 +69,14 @@ class MainActivity : AppCompatActivity() {
         Log.d(LOG_TAG, "${root.frequency}") //дерево готово
         val codeTable = Coder.createCodeTable(root)
         for(i in codeTable){
-            Log.d(LOG_TAG, "${i.first.toChar()} & ${i.second}")
+            Log.d(LOG_TAG, "${i.key.toChar()} & ${i.value}")
         }
-        //todo начать шифровать (жопа)
+
+        Coder.codeArray(test.toByteArray(),codeTable)
+        Coder.createHeader(smallTable) //технически уже можно кодировать
+        //todo начать шифровать (жопа
+        val int : Int = 1724
+        Log.d(LOG_TAG, "${int.toUByte()}" )
     }
 
     fun writeBinFile(data : ByteArray) {

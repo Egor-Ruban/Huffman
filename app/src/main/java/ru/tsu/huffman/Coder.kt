@@ -3,8 +3,10 @@ package ru.tsu.huffman
 import android.util.ArrayMap
 import android.util.Log
 import java.util.ArrayList
+import kotlin.experimental.or
 
 object Coder {
+    var freeBits = 0
     fun getFrequency(data : ByteArray) : IntArray{
         val frequencyTable = IntArray(256){0}
         for(byte in data){
@@ -74,19 +76,65 @@ object Coder {
         }
     }
 
-    fun createCodeTable(root : Node) : Array<Pair<Byte, String>>{
-        return explorePath("",root,arrayOf<Pair<Byte, String>>())
+    fun createCodeTable(root : Node) : Map<Byte, String>{
+        return explorePath("",root, mapOf())
     }
 
-    private fun explorePath(currentCode : String, node : Node, resMap : Array<Pair<Byte, String>>) : Array<Pair<Byte, String>>{
+    private fun explorePath(currentCode : String, node : Node, resMap : Map<Byte, String>) : Map<Byte, String>{
         var res = resMap
         if(node.leftNode == null){
-            res = resMap.plusElement(node.letter!! to currentCode)
+            res = resMap.plus(node.letter!! to currentCode)
         } else {
             res = explorePath("${currentCode}0", node.leftNode!!, res)
             res = explorePath("${currentCode}1", node.rightNode!!, res)
         }
         return res
+    }
+
+    fun codeArray(inputText : ByteArray, codeTable: Map<Byte, String>) : ByteArray{
+        var outputText = byteArrayOf()
+        var usedBits = 0
+        //var freeBits = 0
+        var currentByte = -1
+        
+        for(byte in inputText){
+            var toCode = codeTable.get(byte) //кайф
+            for(bit in toCode!!){
+                if(freeBits == 0){
+                    outputText = outputText.plus(0)
+                    usedBits = 0
+                    freeBits = 8
+                    currentByte++
+                }
+                if(bit == '1') {
+                    outputText[currentByte] = outputText[currentByte].or((1 shl(freeBits-1)).toByte())
+                }
+                usedBits++
+                freeBits--
+            }
+            Log.d("my",toCode)
+        }
+        for(byte in outputText){
+            Log.d("my", "${byte.toUByte()}")
+        }
+        Log.d("my", "freeBits $freeBits")
+        return outputText
+    }
+
+    fun createHeader(nodeArray: Array<Pair<Byte, Int>>) : ByteArray{
+        var header = byteArrayOf()
+        header = header.plus(nodeArray.size.toByte())
+        Log.d("my", "freeBits $freeBits")
+        header = header.plus(freeBits.toByte())
+        for(pair in nodeArray){
+            header = header.plus(pair.first)
+            header = header.plus((pair.second shr 8).toByte())
+            header = header.plus((pair.second).toByte())
+        }
+        for(head in header){
+            Log.d("my", "header $head")
+        }
+        return header
     }
 
 }
