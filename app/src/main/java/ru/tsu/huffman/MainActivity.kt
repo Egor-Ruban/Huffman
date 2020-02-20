@@ -3,6 +3,7 @@ package ru.tsu.huffman
 import android.content.Context
 import android.os.Bundle
 import android.os.Environment
+import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -10,8 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.codekidlabs.storagechooser.StorageChooser
 import kotlinx.android.synthetic.main.activity_mainl.*
 import java.io.*
-import java.time.LocalDate
-
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,10 +19,16 @@ class MainActivity : AppCompatActivity() {
     private var fileToRead = "default.txt"
     private var fileToWrite = fileToRead
 
+    val SHOWN_TEXT = "SHOWN_TEXT"
+    val IS_VISIBLE_TEXT = "IS_VISIBLE_TEXT"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mainl)
 
+
+        tv_file.text = savedInstanceState?.getString(SHOWN_TEXT)
+        tv_file.visibility = savedInstanceState?.getInt(IS_VISIBLE_TEXT) ?: View.INVISIBLE
         fileToRead = "$filesDir/$fileToRead"
         fileToWrite = fileToRead
         initButtons()
@@ -169,5 +174,12 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
             return ""
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+        super.onSaveInstanceState(outState, outPersistentState)
+
+        outState.putString(SHOWN_TEXT, tv_file.text.toString())
+        outState.putInt(IS_VISIBLE_TEXT, tv_file.visibility)
     }
 }
