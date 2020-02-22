@@ -25,7 +25,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        var b : Byte = -99
+        Log.d(LOG_TAG, "${b.toUByte().toInt()}")
 
         tv_file.text = savedInstanceState?.getString(SHOWN_TEXT)
         tv_file.visibility = savedInstanceState?.getInt(IS_VISIBLE_TEXT) ?: View.INVISIBLE
@@ -84,13 +85,16 @@ class MainActivity : AppCompatActivity() {
     private fun compressText(path : String){
         if(".txt" in path){
             fileToRead = path
-            fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", ".hfm")}"
-            val inputText = readFile().toByteArray()
+            fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
+            val inputText = readFileBin()
+            @UseExperimental(kotlin.ExperimentalStdlibApi::class)
+            tv_file.text = inputText.decodeToString()
+            tv_file.visibility = View.VISIBLE
             writeBinFile(Coder.compress(inputText))
         } else if(".hfm" in path){
             Toast.makeText(this,"maybe you wanted to decompress it?",Toast.LENGTH_SHORT).show()
         } else {
-        showError()
+            showError()
         }
     }
 
@@ -99,10 +103,13 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "maybe you wanted to compress it?", Toast.LENGTH_SHORT).show()
         } else if(".hfm" in path){
             fileToRead = path
-            fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", ".txt")}"
+            fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
             val inputText = readFileBin()
             val outputText = Decoder.decode(inputText)
             writeBinFile(outputText)
+            @UseExperimental(kotlin.ExperimentalStdlibApi::class)
+            tv_file.text = outputText.decodeToString()
+            tv_file.visibility = View.VISIBLE
         } else {
             showError()
         }
@@ -111,7 +118,7 @@ class MainActivity : AppCompatActivity() {
     private fun showText(path: String){
         if(".txt" in path){
             fileToRead = path
-            readFile()
+            tv_file.text = readFile()
         } else {
             showError()
         }
@@ -161,18 +168,16 @@ class MainActivity : AppCompatActivity() {
             )
             val str: String = stream.readText()
             // читаем содержимое
-            tv_file.visibility = View.VISIBLE
-            tv_file.text = str
             stream.close()
             return str
         } catch (e: FileNotFoundException) {
             Log.d(LOG_TAG, "not found")
             e.printStackTrace()
-            return ""
+            return "file not found"
         } catch (e: IOException) {
             Log.d(LOG_TAG, "IOE")
             e.printStackTrace()
-            return ""
+            return "IOException"
         }
     }
 

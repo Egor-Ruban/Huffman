@@ -28,12 +28,14 @@ object Coder {
         for(byte in fullTable.indices){
             if(fullTable[byte] > 0) {
                 frequencyTable = frequencyTable.plusElement(byte.toByte() to fullTable[byte])
+
             }
         }
     }
 
     private fun sortFrequencyTable(){
         frequencyTable.sortBy { it.second }
+
     }
 
     private fun createNodeArray(){
@@ -134,6 +136,7 @@ object Coder {
         createNodeArray()
         createTree()
         createCodeTable()
+
 
         val compressedText = codeArray(inputText)
         val header = createHeader()

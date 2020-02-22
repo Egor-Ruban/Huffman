@@ -1,6 +1,7 @@
 package ru.tsu.huffman
 
 import android.util.Log
+import java.lang.StringBuilder
 import java.util.ArrayList
 
 object Decoder {
@@ -9,6 +10,7 @@ object Decoder {
     private var emptyBits : Byte = 0
     private var nodeArray : ArrayList<Node> = arrayListOf()
     private var currentByte = 0
+    lateinit var root : Node
 
     fun decode(inputText : ByteArray) : ByteArray{
         init()
@@ -25,7 +27,10 @@ object Decoder {
 
     private fun decodeText(inputText: ByteArray) : ByteArray{
         var outputText = byteArrayOf()
-        val root = createTree(nodeArray)
+        createTree()
+
+
+
         var curNode = root
         while(currentByte < inputText.size){
             val curItem = inputText[currentByte]
@@ -48,6 +53,7 @@ object Decoder {
             }
             currentByte++
         }
+
         return outputText
     }
 
@@ -56,14 +62,14 @@ object Decoder {
         emptyBits = inputText[1]
         currentByte = 2
         var symbol : Byte = 0
-        var freq = 0
+        var freq : Int = 0
         while(currentByte < 2 + 3 * codedSymbolsAmount){
             when(currentByte % 3){
                 2 -> symbol = inputText[currentByte]
-                0 -> freq = inputText[currentByte].toInt() shl 8
+                0 -> freq = inputText[currentByte].toUByte().toInt() shl 8
                 1 ->{
-                    freq = freq or (inputText[currentByte].toInt())
-                    nodeArray.add(Node(symbol, freq))
+                    freq = freq or (inputText[currentByte].toUByte().toInt())
+                    nodeArray.add(Node(symbol, freq.toInt()))
                     freq = 0
                 }
             }
@@ -89,24 +95,24 @@ object Decoder {
         }
     }
 
-    private fun sortNodeArray(data : ArrayList<Node>){
-        data.sortBy { it.frequency }
+    private fun sortNodeArray(){
+        nodeArray.sortBy { it.frequency }
     }
 
-    private fun mergeNodes(data : ArrayList<Node>){
-        val new = Node(null, data[0].frequency + data[1].frequency).apply {
-            leftNode = data[0]
-            rightNode = data[1]
+    private fun mergeNodes(){
+        val new = Node(null, nodeArray[0].frequency + nodeArray[1].frequency).apply {
+            leftNode = nodeArray[0]
+            rightNode = nodeArray[1]
         }
-        data[1] = new
-        data.removeAt(0)
+        nodeArray[1] = new
+        nodeArray.removeAt(0)
     }
 
-    private fun createTree(nodeArray : ArrayList<Node>) : Node{
+    private fun createTree(){
         while(nodeArray.size > 1){
-            mergeNodes(nodeArray)
-            sortNodeArray(nodeArray)
+            mergeNodes()
+            sortNodeArray()
         }
-        return nodeArray[0]
+        root = nodeArray[0]
     }
 }
