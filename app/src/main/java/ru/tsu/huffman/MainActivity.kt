@@ -25,8 +25,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        var b : Byte = -99
-        Log.d(LOG_TAG, "${b.toUByte().toInt()}")
 
         tv_file.text = savedInstanceState?.getString(SHOWN_TEXT)
         tv_file.visibility = savedInstanceState?.getInt(IS_VISIBLE_TEXT) ?: View.INVISIBLE

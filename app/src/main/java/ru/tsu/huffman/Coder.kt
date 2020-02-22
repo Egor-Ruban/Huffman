@@ -145,6 +145,7 @@ object Coder {
         outputText = outputText.plus(compressedText)
         val ratio : Double = size.toDouble()/outputText.size.toDouble()
         Toast.makeText(App.applicationContext(),"compress ratio $ratio", Toast.LENGTH_LONG ).show()
+        Log.d("my_logs","ratio is $ratio")
         return outputText
     }
 
