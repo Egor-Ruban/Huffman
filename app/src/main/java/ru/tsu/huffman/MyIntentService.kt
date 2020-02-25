@@ -26,6 +26,8 @@ private val LOG_TAG = "myLogs"
 private var fileToRead = "default.txt"
 private var fileToWrite = fileToRead
 
+lateinit var builder : NotificationCompat.Builder
+
 class CoderService : IntentService("TextFileCoder") {
 
     override fun onHandleIntent(intent: Intent?) {
@@ -34,7 +36,7 @@ class CoderService : IntentService("TextFileCoder") {
         when (intent?.action) {
             ACTION_DECOMPRESS -> {
                 val path = intent.getStringExtra(PATH)
-                onHandleCompress(path)
+                onHandleDecompress(path)
             }
             ACTION_COMPRESS -> {
                 val path = intent.getStringExtra(PATH)
@@ -73,6 +75,18 @@ class CoderService : IntentService("TextFileCoder") {
     }
 
     fun onHandleDecompress(path : String){
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+
+        builder = NotificationCompat.Builder(this, "my_notes")
+            .setSmallIcon(R.drawable.ic_notification_24dp)
+            .setContentTitle("file compressing")
+            .setContentText(path)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
         fileToRead = path
         fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
         val inputText = readFileBin()
@@ -80,23 +94,12 @@ class CoderService : IntentService("TextFileCoder") {
         writeBinFile(outputText)
 
         Log.d(LOG_TAG, "end of compressing")
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
 
-        var builder = NotificationCompat.Builder(this, "my_notes")
-            .setSmallIcon(R.drawable.ic_notification_24dp)
-            .setContentTitle("file was compressed")
-            .setContentText(path)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
 
-        with(NotificationManagerCompat.from(this)) {
-            // notificationId is a unique int for each notification that you must define
-            notify(2, builder.build())
-        }
+        //with(NotificationManagerCompat.from(this)) {
+        //    // notificationId is a unique int for each notification that you must define
+        //    notify(2, builder.build())
+        //}
     }
 
     private fun createNotificationChannel() {
@@ -174,4 +177,5 @@ class CoderService : IntentService("TextFileCoder") {
             context.startService(intent)
         }
     }
+
 }

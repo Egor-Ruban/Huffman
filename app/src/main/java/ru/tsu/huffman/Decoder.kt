@@ -1,6 +1,8 @@
 package ru.tsu.huffman
 
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import java.lang.StringBuilder
 import java.util.ArrayList
 import kotlin.experimental.and
@@ -15,6 +17,10 @@ object Decoder {
     private var type = 0
 
     fun decode(inputText: ByteArray): ByteArray {
+        with(NotificationManagerCompat.from(builder.mContext)){
+            builder.setProgress(inputText.size,0,false)
+            notify(1, builder.build())
+        }
         init()
         parseHeader(inputText)
         Log.d("my", "header was parsed")
@@ -50,12 +56,25 @@ object Decoder {
                     if (curNode.letter != null) {
                         outputText = outputText.plus(curNode.letter!!)
                         counter++
-                        if(counter % 10000 == 0) Log.d("my", "$counter symbols were decoded")
+                        if(counter % 10000 == 0) {
+                            Log.d("my", "$counter symbols were decoded")
+                        }
                         curNode = root
                     }
                 }
             }
             currentByte++
+            if(currentByte % 1000 == 0){
+                with(NotificationManagerCompat.from(builder.mContext)){
+                    builder.setProgress(inputText.size, currentByte,false)
+                    notify(1, builder.build())
+                }
+            }
+        }
+        with(NotificationManagerCompat.from(builder.mContext)){
+            builder.setProgress(0, 0,false)
+            builder.setContentTitle("decompressing finished")
+            notify(1, builder.build())
         }
         Log.d("my", "text was decoded")
         return outputText
