@@ -8,8 +8,9 @@ import kotlin.experimental.or
 
 object Coder {
 
-    private var freeBits = 0
+    private var freeBits = 5
     private var size = 1
+    private var type = 0
     private var frequencyTable : Array<Pair<Byte, Int>> = arrayOf()
     private var nodeArray : ArrayList<Node> = arrayListOf()
     private lateinit var root : Node
@@ -19,8 +20,18 @@ object Coder {
         val fullFrequencyTable = IntArray(256){0}
         size = data.size
         for(byte in data){
+            @UseExperimental(kotlin.ExperimentalUnsignedTypes::class)
             fullFrequencyTable[byte.toUByte().toInt()]++
         }
+
+         type = when(fullFrequencyTable.max()){
+            null -> 0
+            in 0..256 -> 1
+            in 256..16000 -> 2
+            in 16000..16000000-> 3
+            else -> 4  //у войны и мир - 3
+        }
+        Log.d("my", "байт затрачено для передачи частоты каждого кода: $type")
         return fullFrequencyTable
     }
 
@@ -99,7 +110,11 @@ object Coder {
     private fun codeArray(inputText : ByteArray) : ByteArray{
         var outputText = byteArrayOf()
         var currentByte = -1
+        var counter = 0
         for(byte in inputText){
+            if(counter % 10000 == 0) {
+                Log.d("my", "$counter byte coded")
+            }
             val toCode = codeTable[byte] //кайф
             for(bit in toCode!!){
                 if(freeBits == 0){
@@ -112,18 +127,50 @@ object Coder {
                 }
                 freeBits--
             }
+            counter++
         }
         return outputText
     }
 
+
     private fun createHeader() : ByteArray{
         var header = byteArrayOf()
+        var typeAndFreeBits = 0
+        typeAndFreeBits = typeAndFreeBits or type.toInt() or (freeBits shl 4)
         header = header.plus(frequencyTable.size.toByte())
-        header = header.plus(freeBits.toByte())
-        for(pair in frequencyTable){
-            header = header.plus(pair.first)
-            header = header.plus((pair.second shr 8).toByte())
-            header = header.plus((pair.second).toByte())
+        header = header.plus(typeAndFreeBits.toByte())
+        when(type) {
+            4 ->{
+                for (pair in frequencyTable) {
+                    header = header.plus(pair.first)
+                    header = header.plus((pair.second shr 24).toByte())
+                    header = header.plus((pair.second shr 16).toByte())
+                    header = header.plus((pair.second shr 8).toByte())
+                    header = header.plus((pair.second).toByte())
+                }
+            }
+            3 -> {
+                for (pair in frequencyTable) {
+                    header = header.plus(pair.first)
+                    header = header.plus((pair.second shr 16).toByte())
+                    header = header.plus((pair.second shr 8).toByte())
+                    header = header.plus((pair.second).toByte())
+                }
+            }
+            2 -> {
+                for (pair in frequencyTable) {
+                    header = header.plus(pair.first)
+                    header = header.plus((pair.second shr 8).toByte())
+                    header = header.plus((pair.second).toByte())
+                }
+            }
+            1 -> {
+                for (pair in frequencyTable) {
+                    header = header.plus(pair.first)
+                    header = header.plus((pair.second).toByte())
+                }
+            }
+
         }
         return header
     }
@@ -133,13 +180,19 @@ object Coder {
         val frequencyTable = getFrequency(inputText)
         minimizeFrequencyTable(frequencyTable)
         sortFrequencyTable()
+        Log.d("my", "coder frequency table was sorted")
         createNodeArray()
+        Log.d("my", "coder node array was created")
         createTree()
+        Log.d("my", "the coder tree was created")
         createCodeTable()
+        Log.d("my", "code table was created")
 
 
         val compressedText = codeArray(inputText)
+        Log.d("my", "text was compressed")
         val header = createHeader()
+        Log.d("my", "header was created")
         var outputText = byteArrayOf()
         outputText = outputText.plus(header)
         outputText = outputText.plus(compressedText)

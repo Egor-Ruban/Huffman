@@ -1,6 +1,7 @@
 package ru.tsu.huffman
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.os.PersistableBundle
@@ -82,13 +83,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun compressText(path : String){
         if(".txt" in path){
-            fileToRead = path
-            fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
-            val inputText = readFileBin()
-            @UseExperimental(kotlin.ExperimentalStdlibApi::class)
-            tv_file.text = inputText.decodeToString()
-            tv_file.visibility = View.VISIBLE
-            writeBinFile(Coder.compress(inputText))
+            //CoderService.startCompressing(baseContext, path, byteArrayOf())
+            Log.d(LOG_TAG, "comp start")
+            val intent = Intent(this, CoderService::class.java).apply {
+                action = ACTION_COMPRESS
+                putExtra(PATH, path)
+            }
+            startService(intent)
+            //fileToRead = path
+            //fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
+            //val inputText = readFileBin()
+            //@UseExperimental(kotlin.ExperimentalStdlibApi::class)
+            //tv_file.text = inputText.decodeToString()
+            //tv_file.visibility = View.VISIBLE
+            //writeBinFile(Coder.compress(inputText))
         } else if(".hfm" in path){
             Toast.makeText(this,"maybe you wanted to decompress it?",Toast.LENGTH_SHORT).show()
         } else {
@@ -100,14 +108,14 @@ class MainActivity : AppCompatActivity() {
         if(".txt" in path){
             Toast.makeText(this, "maybe you wanted to compress it?", Toast.LENGTH_SHORT).show()
         } else if(".hfm" in path){
-            fileToRead = path
-            fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
-            val inputText = readFileBin()
-            val outputText = Decoder.decode(inputText)
-            writeBinFile(outputText)
-            @UseExperimental(kotlin.ExperimentalStdlibApi::class)
-            tv_file.text = outputText.decodeToString()
-            tv_file.visibility = View.VISIBLE
+            CoderService.startDecompressing(this, path, byteArrayOf())
+            //fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
+            //val inputText = readFileBin()
+            //val outputText = Decoder.decode(inputText)
+            //writeBinFile(outputText)
+            //@UseExperimental(kotlin.ExperimentalStdlibApi::class)
+            //tv_file.text = outputText.decodeToString()
+            //tv_file.visibility = View.VISIBLE
         } else {
             showError()
         }
