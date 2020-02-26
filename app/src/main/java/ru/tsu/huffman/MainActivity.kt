@@ -85,11 +85,7 @@ class MainActivity : AppCompatActivity() {
         if(".txt" in path){
             //CoderService.startCompressing(baseContext, path, byteArrayOf())
             Log.d(LOG_TAG, "comp start")
-            val intent = Intent(this, CoderService::class.java).apply {
-                action = ACTION_COMPRESS
-                putExtra(PATH, path)
-            }
-            startService(intent)
+            CoderService.startCompressing(baseContext, path, byteArrayOf())
             //fileToRead = path
             //fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
             //val inputText = readFileBin()
@@ -130,40 +126,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun writeBinFile(data : ByteArray) {
-        try {
-            val f = File(fileToWrite)
-            f.createNewFile()
-            val stream = DataOutputStream(
-                FileOutputStream(f, false)
-            )
-            stream.write(data)
-            stream.close()
-            Log.d(LOG_TAG, "Файл записан $fileToWrite")
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
 
-    private fun readFileBin() : ByteArray{
-        try {
-            //открываем поток для чтения
-            val stream = DataInputStream(FileInputStream(File(fileToRead)))
-            val ba = stream.readBytes()
-            stream.close()
-            return ba
-        } catch (e: FileNotFoundException) {
-            Log.d(LOG_TAG, "not found")
-            e.printStackTrace()
-            return byteArrayOf()
-        } catch (e: IOException) {
-            Log.d(LOG_TAG, "IOE")
-            e.printStackTrace()
-            return byteArrayOf()
-        }
-    }
 
     private fun readFile() : String{ //чисто для вывода txt
         try {

@@ -112,10 +112,12 @@ object Coder {
         var currentByte = -1
         var counter = 0
         for(byte in inputText){
-            if(counter % 10000 == 0) {
+            if(counter % 60000 == 0) {
+                CoderService.updateInfo(outputText, counter, inputText.size)
+                outputText = byteArrayOf()
                 Log.d("my", "$counter byte coded")
             }
-            val toCode = codeTable[byte] //кайф
+            val toCode = codeTable[byte]
             for(bit in toCode!!){
                 if(freeBits == 0){
                     outputText = outputText.plus(0)
@@ -129,6 +131,8 @@ object Coder {
             }
             counter++
         }
+        Log.d("my", "$counter byte coded")
+        CoderService.updateInfo(outputText, 0,0)
         return outputText
     }
 
@@ -175,8 +179,9 @@ object Coder {
         return header
     }
 
-    fun compress(inputText: ByteArray) : ByteArray{
+    fun compress(inputText: ByteArray){
         init()
+        CoderService.createNotification(inputText.size)
         val frequencyTable = getFrequency(inputText)
         minimizeFrequencyTable(frequencyTable)
         sortFrequencyTable()
@@ -188,18 +193,19 @@ object Coder {
         createCodeTable()
         Log.d("my", "code table was created")
 
+        val header = createHeader()
+        CoderService.sendHeader(header)
+        Log.d("my", "header was created")
 
         val compressedText = codeArray(inputText)
         Log.d("my", "text was compressed")
-        val header = createHeader()
-        Log.d("my", "header was created")
+
         var outputText = byteArrayOf()
         outputText = outputText.plus(header)
         outputText = outputText.plus(compressedText)
         val ratio : Double = size.toDouble()/outputText.size.toDouble()
         Toast.makeText(App.applicationContext(),"compress ratio $ratio", Toast.LENGTH_LONG ).show()
         Log.d("my_logs","ratio is $ratio")
-        return outputText
     }
 
     private fun init(){

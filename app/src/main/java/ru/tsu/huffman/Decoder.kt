@@ -3,7 +3,6 @@ package ru.tsu.huffman
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import java.lang.StringBuilder
 import java.util.ArrayList
 import kotlin.experimental.and
 
@@ -16,15 +15,12 @@ object Decoder {
     lateinit var root: Node
     private var type = 0
 
-    fun decode(inputText: ByteArray): ByteArray {
-        with(NotificationManagerCompat.from(builder.mContext)){
-            builder.setProgress(inputText.size,0,false)
-            notify(1, builder.build())
-        }
+    fun decode(inputText: ByteArray) {
+        CoderService.createNotification(inputText.size)
         init()
         parseHeader(inputText)
         Log.d("my", "header was parsed")
-        return decodeText(inputText)
+        decodeText(inputText)
     }
 
     private fun init() {
@@ -34,7 +30,7 @@ object Decoder {
         currentByte = 0
     }
 
-    private fun decodeText(inputText: ByteArray): ByteArray {
+    private fun decodeText(inputText: ByteArray){
         var outputText = byteArrayOf()
         createTree()
         Log.d("my", "decoder tree was created")
@@ -64,20 +60,16 @@ object Decoder {
                 }
             }
             currentByte++
-            if(currentByte % 1000 == 0){
-                with(NotificationManagerCompat.from(builder.mContext)){
-                    builder.setProgress(inputText.size, currentByte,false)
-                    notify(1, builder.build())
-                }
+            if(currentByte % 50000 == 0){
+                CoderService.updateInfo(outputText, currentByte, inputText.size)
+                outputText = byteArrayOf()
+
             }
         }
-        with(NotificationManagerCompat.from(builder.mContext)){
-            builder.setProgress(0, 0,false)
-            builder.setContentTitle("decompressing finished")
-            notify(1, builder.build())
-        }
+
+        CoderService.updateInfo(outputText, 0, 0)
+        CoderService.sendLastNotification()
         Log.d("my", "text was decoded")
-        return outputText
     }
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
