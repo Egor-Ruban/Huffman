@@ -23,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     val SHOWN_TEXT = "SHOWN_TEXT"
     val IS_VISIBLE_TEXT = "IS_VISIBLE_TEXT"
 
+    val EXCEPTION = "file not found"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -36,12 +38,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun initButtons(){
         btn_code.setOnClickListener {
+            tv_file.visibility = View.INVISIBLE
             val chooser = StorageChooser.Builder()
                 .withActivity(this)
                 .withFragmentManager(fragmentManager)
                 .withMemoryBar(true)
                 .allowCustomPath(true)
                 .setType(StorageChooser.FILE_PICKER)
+                .disableMultiSelect()
                 .build()
 
             chooser.setOnSelectListener { path ->
@@ -51,12 +55,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn_decode.setOnClickListener {
+            tv_file.visibility = View.INVISIBLE
             val chooser = StorageChooser.Builder()
                 .withActivity(this)
                 .withFragmentManager(fragmentManager)
                 .withMemoryBar(true)
                 .allowCustomPath(true)
                 .setType(StorageChooser.FILE_PICKER)
+                .disableMultiSelect()
                 .build()
 
             chooser.setOnSelectListener { path ->
@@ -66,6 +72,24 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn_read.setOnClickListener {
+            tv_file.visibility = View.INVISIBLE
+            val chooser = StorageChooser.Builder()
+                .withActivity(this)
+                .withFragmentManager(fragmentManager)
+                .withMemoryBar(true)
+                .allowCustomPath(true)
+                .setType(StorageChooser.FILE_PICKER)
+                .disableMultiSelect()
+                .build()
+
+            chooser.setOnSelectListener { path ->
+                showText(path)
+            }
+            chooser.show()
+        }
+
+        btn_compare.setOnClickListener {
+            tv_file.visibility = View.INVISIBLE
             val chooser = StorageChooser.Builder()
                 .withActivity(this)
                 .withFragmentManager(fragmentManager)
@@ -74,8 +98,33 @@ class MainActivity : AppCompatActivity() {
                 .setType(StorageChooser.FILE_PICKER)
                 .build()
 
-            chooser.setOnSelectListener { path ->
-                showText(path)
+            chooser.setOnCancelListener {
+                Toast.makeText(this, "выбери два файла", Toast.LENGTH_LONG).show()
+            }
+
+            chooser.setOnMultipleSelectListener {selectedFilePaths ->
+                fileToRead = selectedFilePaths[0]
+                val firstText = readFile()
+                var counter = 0
+                var resultString = ""
+                for(path in selectedFilePaths){
+                    resultString += path
+                    resultString += "\n"
+                    fileToRead = path
+                    val secondText = readFile()
+                    if(! (firstText.equals(secondText))){
+                        Toast.makeText(this, "не равны", Toast.LENGTH_LONG).show()
+                        tv_file.visibility = View.VISIBLE
+                        tv_file.text = resultString + "не равны"
+                        break
+                    }
+                    counter ++
+                }
+                if(counter == selectedFilePaths.size){
+                    Toast.makeText(this, "равны", Toast.LENGTH_LONG).show()
+                    tv_file.visibility = View.VISIBLE
+                    tv_file.text = resultString + "равны"
+                }
             }
             chooser.show()
         }
@@ -83,16 +132,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun compressText(path : String){
         if(".txt" in path){
-            //CoderService.startCompressing(baseContext, path, byteArrayOf())
-            Log.d(LOG_TAG, "comp start")
-            CoderService.startCompressing(baseContext, path, byteArrayOf())
-            //fileToRead = path
-            //fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
-            //val inputText = readFileBin()
-            //@UseExperimental(kotlin.ExperimentalStdlibApi::class)
-            //tv_file.text = inputText.decodeToString()
-            //tv_file.visibility = View.VISIBLE
-            //writeBinFile(Coder.compress(inputText))
+            if(checkIfExist(path)) {
+                CoderService.startCompressing(baseContext, path, byteArrayOf())
+            } else {
+                tv_file.visibility = View.VISIBLE
+                tv_file.text = EXCEPTION
+                Toast.makeText(this, EXCEPTION, Toast.LENGTH_LONG).show()
+            }
         } else if(".hfm" in path){
             Toast.makeText(this,"maybe you wanted to decompress it?",Toast.LENGTH_SHORT).show()
         } else {
@@ -104,14 +150,13 @@ class MainActivity : AppCompatActivity() {
         if(".txt" in path){
             Toast.makeText(this, "maybe you wanted to compress it?", Toast.LENGTH_SHORT).show()
         } else if(".hfm" in path){
-            CoderService.startDecompressing(this, path, byteArrayOf())
-            //fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
-            //val inputText = readFileBin()
-            //val outputText = Decoder.decode(inputText)
-            //writeBinFile(outputText)
-            //@UseExperimental(kotlin.ExperimentalStdlibApi::class)
-            //tv_file.text = outputText.decodeToString()
-            //tv_file.visibility = View.VISIBLE
+            if(checkIfExist(path)) {
+                CoderService.startDecompressing(this, path, byteArrayOf())
+            } else {
+                tv_file.visibility = View.VISIBLE
+                tv_file.text = EXCEPTION
+                Toast.makeText(this, EXCEPTION, Toast.LENGTH_LONG).show()
+            }
         } else {
             showError()
         }
@@ -119,14 +164,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun showText(path: String){
         if(".txt" in path){
-            fileToRead = path
-            tv_file.text = readFile()
+            if(checkIfExist(path)) {
+                fileToRead = path
+                tv_file.text = readFile()
+                tv_file.visibility = View.VISIBLE
+            } else {
+                tv_file.visibility = View.VISIBLE
+                tv_file.text = EXCEPTION
+                Toast.makeText(this, EXCEPTION, Toast.LENGTH_LONG).show()
+            }
         } else {
             showError()
         }
     }
-
-
 
     private fun readFile() : String{ //чисто для вывода txt
         try {
@@ -147,6 +197,25 @@ class MainActivity : AppCompatActivity() {
             Log.d(LOG_TAG, "IOE")
             e.printStackTrace()
             return "IOException"
+        }
+    }
+
+    private fun checkIfExist(path : String) : Boolean{
+        try {
+            val stream = BufferedReader(
+                InputStreamReader(
+                    FileInputStream(File(fileToRead))
+                )
+            ).close()
+            return true
+        } catch (e: FileNotFoundException) {
+            Log.d(LOG_TAG, "not found")
+            e.printStackTrace()
+            return false
+        } catch (e: IOException) {
+            Log.d(LOG_TAG, "IOE")
+            e.printStackTrace()
+            return false
         }
     }
 

@@ -49,7 +49,7 @@ object Decoder {
                     if (curNode.letter != null) {
                         outputText = outputText.plus(curNode.letter!!)
                         counter++
-                        if(counter % 10000 == 0) {
+                        if(counter % 40000 == 0) {
                             Log.d("my", "$counter symbols were decoded")
                         }
                         curNode = root
@@ -57,7 +57,7 @@ object Decoder {
                 }
             }
             currentByte++
-            if(currentByte % 50000 == 0){
+            if(currentByte % 40000 == 0){
                 CoderService.updateInfo(outputText, currentByte, inputText.size)
                 outputText = byteArrayOf()
 
@@ -76,6 +76,7 @@ object Decoder {
         emptyBits = (emptyBitsAndType.toInt() shr 4).toByte()
         type = emptyBitsAndType.toInt() and 15
         Log.d("my", "байт шифрует частоту каждого символа: $type")
+        Log.d("myLogs", "пустых бит в конце файла: $emptyBits")
         when (type) {
             1 -> {
                 createNodeArrayFirstType(inputText)

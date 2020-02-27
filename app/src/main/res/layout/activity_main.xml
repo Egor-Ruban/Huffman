@@ -7,6 +7,26 @@
     android:layout_height="match_parent"
     android:background="?attr/colorPrimary"
     android:orientation="vertical">
+
+
+    <ScrollView
+        android:id="@+id/sv_file"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_code"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tv_file"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="@android:color/white"
+            android:visibility="gone" />
+    </ScrollView>
+
     <Button
         android:id="@+id/btn_code"
         android:layout_width="0dp"
@@ -17,26 +37,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sv_file" />
-
-
-    <ScrollView
-        android:id="@+id/sv_file"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/btn_code"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <TextView
-            android:id="@+id/tv_file"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:background="@android:color/white"
-            android:visibility="gone"/>
-    </ScrollView>
 
     <Button
         android:id="@+id/btn_decode"
@@ -55,10 +55,20 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorAccent"
         android:text="@string/read_file"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btn_compare"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_decode" />
+
+    <Button
+        android:id="@+id/btn_compare"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorAccent"
+        android:text="@string/compare_file"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_read" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

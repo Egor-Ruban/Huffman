@@ -30,6 +30,7 @@ object Coder {
         createCodeTable()
         Log.d("my", "code table was created")
 
+        freeBits = countFreeBits(inputText)
         val header = createHeader()
         Log.d("my", "header was created")
 
@@ -124,6 +125,15 @@ object Coder {
         explorePath("", root)
     }
 
+    private fun countFreeBits(inputText: ByteArray) : Int{
+        var length = 0
+        for(byte in inputText){
+            val code = codeTable.get(byte)
+            length += code!!.length
+        }
+        return 8 - (length % 8)
+    }
+
     private fun explorePath(currentCode : String, node : Node){
         if(node.leftNode == null){
             codeTable = codeTable.plus(node.letter!! to currentCode)
@@ -138,17 +148,20 @@ object Coder {
         var newSize = 0
         var currentByte = -1
         var counter = 0
+        var oneMoreCounter = 0
+        freeBits = 0
         for(byte in inputText){
             if(counter % 60000 == 0) {
-                newSize += outputText.size
-                CoderService.updateInfo(outputText, counter, inputText.size)
-                outputText = byteArrayOf()
-                freeBits = 0
-                currentByte = -1
                 Log.d("my", "$counter byte coded")
             }
             val toCode = codeTable[byte]
             for(bit in toCode!!){
+                if(outputText.size == 60000 && freeBits == 0){
+                    newSize += outputText.size
+                    CoderService.updateInfo(outputText, counter, inputText.size)
+                    outputText = byteArrayOf()
+                    currentByte = -1
+                }
                 if(freeBits == 0){
                     outputText = outputText.plus(0)
                     freeBits = 8
@@ -158,6 +171,7 @@ object Coder {
                     outputText[currentByte] = outputText[currentByte].or((1 shl(freeBits-1)).toByte())
                 }
                 freeBits--
+
             }
             counter++
         }
@@ -171,7 +185,8 @@ object Coder {
     private fun createHeader() : Int{
         var header = byteArrayOf()
         var typeAndFreeBits = 0
-        typeAndFreeBits = typeAndFreeBits or type.toInt() or (freeBits shl 4)
+        Log.d("myLogs", "пустых бит в конце сообщения: $freeBits")
+        typeAndFreeBits = typeAndFreeBits or type or (freeBits shl 4)
         header = header.plus(frequencyTable.size.toByte())
         header = header.plus(typeAndFreeBits.toByte())
         when(type) {
