@@ -1,10 +1,7 @@
 package ru.tsu.huffman
 
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import java.util.ArrayList
-import kotlin.experimental.and
 
 object Decoder {
 
@@ -68,7 +65,7 @@ object Decoder {
         }
 
         CoderService.updateInfo(outputText, 0, 0)
-        CoderService.sendLastNotification()
+        CoderService.sendLastDecodeNotification()
         Log.d("my", "text was decoded")
     }
 

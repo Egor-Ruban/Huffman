@@ -63,8 +63,7 @@ class CoderService : IntentService("TextFileCoder") {
 
 
         val fileToRead = path
-        val fileToWrite = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
-        fileToWork = fileToWrite
+        fileToWork = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
         val inputText = readFileBin(fileToRead)
         Coder.compress(inputText)
 
@@ -89,24 +88,14 @@ class CoderService : IntentService("TextFileCoder") {
             .setAutoCancel(true)
         val fileToRead = path
 
-        val fileToWrite = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
-        fileToWork = fileToWrite
+        fileToWork = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
         val inputText = readFileBin(fileToRead)
         Decoder.decode(inputText)
 
-
         Log.d(LOG_TAG, "end of compressing")
-
-
-        //with(NotificationManagerCompat.from(this)) {
-        //    // notificationId is a unique int for each notification that you must define
-        //    notify(2, builder.build())
-        //}
     }
 
     private fun createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "my notifications"
             val descriptionText = "test notifications"
@@ -222,10 +211,18 @@ class CoderService : IntentService("TextFileCoder") {
             }
         }
 
-        fun sendLastNotification(){
+        fun sendLastDecodeNotification(){
             with(NotificationManagerCompat.from(CoderService.builder.mContext)){
                 builder.setProgress(0, 0,false)
                 builder.setContentTitle("decompressing finished")
+                notify(currentID, CoderService.builder.build())
+            }
+        }
+
+        fun sendLastCodeNotification(ratio : Double){
+            with(NotificationManagerCompat.from(CoderService.builder.mContext)){
+                builder.setProgress(0, 0,false)
+                builder.setContentTitle("compressing finished. ratio : $ratio")
                 notify(currentID, CoderService.builder.build())
             }
         }

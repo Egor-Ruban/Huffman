@@ -8,13 +8,39 @@ import kotlin.experimental.or
 
 object Coder {
 
-    private var freeBits = 5
+    private var freeBits = 0
     private var size = 1
     private var type = 0
     private var frequencyTable : Array<Pair<Byte, Int>> = arrayOf()
     private var nodeArray : ArrayList<Node> = arrayListOf()
     private lateinit var root : Node
     private var codeTable: Map<Byte, String> = mapOf()
+
+    fun compress(inputText: ByteArray){
+        init()
+        CoderService.createNotification(inputText.size)
+        val frequencyTable = getFrequency(inputText)
+        minimizeFrequencyTable(frequencyTable)
+        sortFrequencyTable()
+        Log.d("my", "coder frequency table was sorted")
+        createNodeArray()
+        Log.d("my", "coder node array was created")
+        createTree()
+        Log.d("my", "the coder tree was created")
+        createCodeTable()
+        Log.d("my", "code table was created")
+
+        val header = createHeader()
+        Log.d("my", "header was created")
+
+        val compressedText = codeArray(inputText)
+        Log.d("my", "text was compressed")
+
+        val outputSize = header + compressedText
+        val ratio : Double = size.toDouble()/outputSize.toDouble()
+        Log.d("my_logs","ratio is $ratio")
+        CoderService.sendLastCodeNotification(ratio)
+    }
 
     private fun getFrequency(data : ByteArray) : IntArray{
         val fullFrequencyTable = IntArray(256){0}
@@ -107,7 +133,7 @@ object Coder {
         }
     }
 
-    private fun codeArray(inputText : ByteArray) : ByteArray{
+    private fun codeArray(inputText : ByteArray) : Int{
         var outputText = byteArrayOf()
         var currentByte = -1
         var counter = 0
@@ -115,6 +141,8 @@ object Coder {
             if(counter % 60000 == 0) {
                 CoderService.updateInfo(outputText, counter, inputText.size)
                 outputText = byteArrayOf()
+                freeBits = 0
+                currentByte = -1
                 Log.d("my", "$counter byte coded")
             }
             val toCode = codeTable[byte]
@@ -133,11 +161,11 @@ object Coder {
         }
         Log.d("my", "$counter byte coded")
         CoderService.updateInfo(outputText, 0,0)
-        return outputText
+        return counter
     }
 
 
-    private fun createHeader() : ByteArray{
+    private fun createHeader() : Int{
         var header = byteArrayOf()
         var typeAndFreeBits = 0
         typeAndFreeBits = typeAndFreeBits or type.toInt() or (freeBits shl 4)
@@ -176,37 +204,11 @@ object Coder {
             }
 
         }
-        return header
-    }
-
-    fun compress(inputText: ByteArray){
-        init()
-        CoderService.createNotification(inputText.size)
-        val frequencyTable = getFrequency(inputText)
-        minimizeFrequencyTable(frequencyTable)
-        sortFrequencyTable()
-        Log.d("my", "coder frequency table was sorted")
-        createNodeArray()
-        Log.d("my", "coder node array was created")
-        createTree()
-        Log.d("my", "the coder tree was created")
-        createCodeTable()
-        Log.d("my", "code table was created")
-
-        val header = createHeader()
         CoderService.sendHeader(header)
-        Log.d("my", "header was created")
-
-        val compressedText = codeArray(inputText)
-        Log.d("my", "text was compressed")
-
-        var outputText = byteArrayOf()
-        outputText = outputText.plus(header)
-        outputText = outputText.plus(compressedText)
-        val ratio : Double = size.toDouble()/outputText.size.toDouble()
-        Toast.makeText(App.applicationContext(),"compress ratio $ratio", Toast.LENGTH_LONG ).show()
-        Log.d("my_logs","ratio is $ratio")
+        return header.size
     }
+
+
 
     private fun init(){
         freeBits = 0
