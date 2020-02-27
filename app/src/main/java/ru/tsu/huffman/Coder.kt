@@ -77,7 +77,7 @@ object Coder {
 
     private fun createNodeArray(){
         for(element in frequencyTable){
-            nodeArray.add(Node(letter = element.first, freq = element.second))
+            nodeArray.add(Node(letter = element.first, frequency = element.second))
         }
     }
 
@@ -135,10 +135,12 @@ object Coder {
 
     private fun codeArray(inputText : ByteArray) : Int{
         var outputText = byteArrayOf()
+        var newSize = 0
         var currentByte = -1
         var counter = 0
         for(byte in inputText){
             if(counter % 60000 == 0) {
+                newSize += outputText.size
                 CoderService.updateInfo(outputText, counter, inputText.size)
                 outputText = byteArrayOf()
                 freeBits = 0
@@ -161,7 +163,8 @@ object Coder {
         }
         Log.d("my", "$counter byte coded")
         CoderService.updateInfo(outputText, 0,0)
-        return counter
+        newSize += outputText.size
+        return newSize
     }
 
 
