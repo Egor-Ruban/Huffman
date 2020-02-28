@@ -3,13 +3,14 @@ package ru.tsu.huffman
 import android.util.Log
 import java.util.ArrayList
 
+@kotlin.ExperimentalUnsignedTypes
 object Decoder {
 
     private var codedSymbolsAmount: Byte = 0
     private var emptyBits: Byte = 0
     private var nodeArray: ArrayList<Node> = arrayListOf()
     private var currentByte = 0
-    lateinit var root: Node
+    private lateinit var root: Node
     private var type = 0
 
     fun decode(inputText: ByteArray) {
@@ -72,7 +73,7 @@ object Decoder {
     @UseExperimental(ExperimentalUnsignedTypes::class)
     private fun parseHeader(inputText: ByteArray) {
         codedSymbolsAmount = inputText[0]
-        var emptyBitsAndType = inputText[1]
+        val emptyBitsAndType = inputText[1]
         emptyBits = (emptyBitsAndType.toInt() shr 4).toByte()
         type = emptyBitsAndType.toInt() and 15
         Log.d("my", "байт шифрует частоту каждого символа: $type")
@@ -89,24 +90,6 @@ object Decoder {
             }
             4 -> {
                 createNodeArrayFourthType(inputText)
-            }
-        }
-    }
-
-    private fun logNodeArray(nodeArray: ArrayList<Node>) {
-        for (element in nodeArray) {
-            with(element) {
-                if (letter != null) {
-                    Log.d(
-                        "my",
-                        "$letter ${letter.toChar()} $frequency $leftNode $rightNode"
-                    )
-                } else {
-                    Log.d(
-                        "my",
-                        "$letter  $frequency $leftNode $rightNode"
-                    )
-                }
             }
         }
     }
@@ -136,14 +119,13 @@ object Decoder {
     private fun createNodeArrayFirstType(inputText: ByteArray) {
         currentByte = 2
         var symbol: Byte = 0
-        var freq: Int = 0
+        var freq : Int
         while (currentByte < 2 + 2 * codedSymbolsAmount) {
             when (currentByte % 2) {
                 0 -> symbol = inputText[currentByte]
                 1 -> {
                     freq = inputText[currentByte].toUByte().toInt()
                     nodeArray.add(Node(symbol, freq))
-                    freq = 0
                 }
             }
             currentByte++
@@ -153,14 +135,14 @@ object Decoder {
     private fun createNodeArraySecondType(inputText: ByteArray){
         currentByte = 2
         var symbol: Byte = 0
-        var freq: Int = 0
+        var freq = 0
         while (currentByte < 2 + 3 * codedSymbolsAmount) {
             when (currentByte % 3) {
                 2 -> symbol = inputText[currentByte]
                 0 -> freq = freq or (inputText[currentByte].toUByte().toInt() shl 8)
                 1 -> {
                     freq = freq or (inputText[currentByte].toUByte().toInt())
-                    nodeArray.add(Node(symbol, freq.toInt()))
+                    nodeArray.add(Node(symbol, freq))
                     freq = 0
                 }
             }
@@ -171,7 +153,7 @@ object Decoder {
     private fun createNodeArrayThirdType(inputText: ByteArray){
         currentByte = 2
         var symbol: Byte = 0
-        var freq: Int = 0
+        var freq = 0
         while (currentByte < 2 + 4 * codedSymbolsAmount) {
             when (currentByte % 4) {
                 2 -> symbol = inputText[currentByte]
@@ -179,7 +161,7 @@ object Decoder {
                 0 -> freq = freq or (inputText[currentByte].toUByte().toInt() shl 8)
                 1 -> {
                     freq = freq or (inputText[currentByte].toUByte().toInt())
-                    nodeArray.add(Node(symbol, freq.toInt()))
+                    nodeArray.add(Node(symbol, freq))
                     freq = 0
                 }
             }
@@ -191,7 +173,7 @@ object Decoder {
     private fun createNodeArrayFourthType(inputText: ByteArray){
         currentByte = 2
         var symbol: Byte = 0
-        var freq: Int = 0
+        var freq = 0
         while (currentByte < 2 + 5 * codedSymbolsAmount) {
             when (currentByte % 5) {
                 2 -> symbol = inputText[currentByte]
@@ -200,7 +182,7 @@ object Decoder {
                 0 -> freq = (freq or inputText[currentByte].toUByte().toInt() shl 8)
                 1 -> {
                     freq = freq or (inputText[currentByte].toUByte().toInt())
-                    nodeArray.add(Node(symbol, freq.toInt()))
+                    nodeArray.add(Node(symbol, freq))
                     freq = 0
                 }
             }

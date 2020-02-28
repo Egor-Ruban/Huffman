@@ -5,4 +5,6 @@
     <string name="decompress_file">Раскомкать</string>
     <string name="read_file">Прочесть</string>
     <string name="compare_file">Сравнить</string>
+    <string name="equals">равны</string>
+    <string name="not_equals">не равны</string>
 </resources>

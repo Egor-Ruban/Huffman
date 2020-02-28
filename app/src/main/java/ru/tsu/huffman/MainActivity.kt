@@ -1,9 +1,6 @@
 package ru.tsu.huffman
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.os.Environment
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
@@ -13,17 +10,17 @@ import com.codekidlabs.storagechooser.StorageChooser
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.*
 
-class MainActivity : AppCompatActivity() {
+private const val LOG_TAG = "myLogs"
+private const val SHOWN_TEXT = "SHOWN_TEXT"
+private const val IS_VISIBLE_TEXT = "IS_VISIBLE_TEXT"
 
-    private val LOG_TAG = "myLogs"
+private const val EXCEPTION = "file not found"
+
+@kotlin.ExperimentalUnsignedTypes
+class MainActivity : AppCompatActivity() {
 
     private var fileToRead = "default.txt"
     private var fileToWrite = fileToRead
-
-    val SHOWN_TEXT = "SHOWN_TEXT"
-    val IS_VISIBLE_TEXT = "IS_VISIBLE_TEXT"
-
-    val EXCEPTION = "file not found"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +28,7 @@ class MainActivity : AppCompatActivity() {
 
         tv_file.text = savedInstanceState?.getString(SHOWN_TEXT)
         tv_file.visibility = savedInstanceState?.getInt(IS_VISIBLE_TEXT) ?: View.INVISIBLE
+
         fileToRead = "$filesDir/$fileToRead"
         fileToWrite = fileToRead
         initButtons()
@@ -113,17 +111,17 @@ class MainActivity : AppCompatActivity() {
                     fileToRead = path
                     val secondText = readFile()
                     if(! (firstText.equals(secondText))){
-                        Toast.makeText(this, "не равны", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, getString(R.string.not_equals), Toast.LENGTH_LONG).show()
                         tv_file.visibility = View.VISIBLE
-                        tv_file.text = resultString + "не равны"
+                        tv_file.text = resultString + getString(R.string.not_equals)
                         break
                     }
                     counter ++
                 }
                 if(counter == selectedFilePaths.size){
-                    Toast.makeText(this, "равны", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.not_equals), Toast.LENGTH_LONG).show()
                     tv_file.visibility = View.VISIBLE
-                    tv_file.text = resultString + "равны"
+                    tv_file.text = resultString + getString(R.string.equals)
                 }
             }
             chooser.show()
@@ -173,6 +171,16 @@ class MainActivity : AppCompatActivity() {
                 tv_file.text = EXCEPTION
                 Toast.makeText(this, EXCEPTION, Toast.LENGTH_LONG).show()
             }
+        } else if(".hfm" in path){
+            if(checkIfExist(path.replace("_coded.hfm", ".txt"))) {
+                fileToRead = path.replace("_coded.hfm", ".txt")
+                tv_file.text = readFile()
+                tv_file.visibility = View.VISIBLE
+            } else {
+                tv_file.visibility = View.VISIBLE
+                tv_file.text = EXCEPTION
+                Toast.makeText(this, EXCEPTION, Toast.LENGTH_LONG).show()
+            }
         } else {
             showError()
         }
@@ -202,9 +210,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkIfExist(path : String) : Boolean{
         try {
-            val stream = BufferedReader(
+            BufferedReader(
                 InputStreamReader(
-                    FileInputStream(File(fileToRead))
+                    FileInputStream(File(path))
                 )
             ).close()
             return true

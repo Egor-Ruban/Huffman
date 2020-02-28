@@ -1,8 +1,6 @@
 package ru.tsu.huffman
 
-import android.util.ArrayMap
 import android.util.Log
-import android.widget.Toast
 import java.util.ArrayList
 import kotlin.experimental.or
 
@@ -47,7 +45,7 @@ object Coder {
         val fullFrequencyTable = IntArray(256){0}
         size = data.size
         for(byte in data){
-            @UseExperimental(kotlin.ExperimentalUnsignedTypes::class)
+            @UseExperimental(ExperimentalUnsignedTypes::class)
             fullFrequencyTable[byte.toUByte().toInt()]++
         }
 
@@ -103,24 +101,6 @@ object Coder {
         root = nodeArray[0]
     }
 
-    private fun logNodeArray(){
-        for(element in nodeArray){
-            with(element) {
-                if(letter != null) {
-                    Log.d(
-                        "my",
-                        "$letter ${letter.toChar()} $frequency $leftNode $rightNode"
-                    )
-                } else {
-                    Log.d(
-                        "my",
-                        "$letter  $frequency $leftNode $rightNode"
-                    )
-                }
-            }
-        }
-    }
-
     private fun createCodeTable(){
         explorePath("", root)
     }
@@ -128,7 +108,7 @@ object Coder {
     private fun countFreeBits(inputText: ByteArray) : Int{
         var length = 0
         for(byte in inputText){
-            val code = codeTable.get(byte)
+            val code = codeTable[byte]
             length += code!!.length
         }
         return 8 - (length % 8)
@@ -145,20 +125,17 @@ object Coder {
 
     private fun codeArray(inputText : ByteArray) : Int{
         var outputText = byteArrayOf()
-        var newSize = 0
         var currentByte = -1
-        var counter = 0
-        var oneMoreCounter = 0
+        var codedBytes = 0
         freeBits = 0
         for(byte in inputText){
-            if(counter % 60000 == 0) {
-                Log.d("my", "$counter byte coded")
+            if(codedBytes % 60000 == 0) {
+                Log.d("my", "$codedBytes byte coded")
             }
             val toCode = codeTable[byte]
             for(bit in toCode!!){
                 if(outputText.size == 60000 && freeBits == 0){
-                    newSize += outputText.size
-                    CoderService.updateInfo(outputText, counter, inputText.size)
+                    CoderService.updateInfo(outputText, codedBytes, inputText.size)
                     outputText = byteArrayOf()
                     currentByte = -1
                 }
@@ -173,12 +150,11 @@ object Coder {
                 freeBits--
 
             }
-            counter++
+            codedBytes++
         }
-        Log.d("my", "$counter byte coded")
+        Log.d("my", "$codedBytes byte coded")
         CoderService.updateInfo(outputText, 0,0)
-        newSize += outputText.size
-        return newSize
+        return codedBytes
     }
 
 

@@ -14,14 +14,14 @@ import androidx.core.app.NotificationManagerCompat
 import java.io.*
 
 
-const val INPUT_TEXT = "inputText"
-const val INPUT_CODE = "inputCode"
-const val PATH = "path"
+private const val INPUT_TEXT = "inputText"
+private const val INPUT_CODE = "inputCode"
+private const val PATH = "path"
 
-const val ACTION_DECOMPRESS = "ACTION_DECOMPRESS"
-const val ACTION_COMPRESS = "ACTION_COMPRESS"
+private const val ACTION_DECOMPRESS = "ACTION_DECOMPRESS"
+private const val ACTION_COMPRESS = "ACTION_COMPRESS"
 
-private val LOG_TAG = "myLogs"
+private const val LOG_TAG = "myLogs"
 
 private lateinit var fileToWork : String
 
@@ -29,6 +29,7 @@ private var currentID = -1
 
 private var sendTimes = 0
 
+@kotlin.ExperimentalUnsignedTypes
 class CoderService : IntentService("TextFileCoder") {
 
     override fun onHandleIntent(intent: Intent?) {
@@ -38,16 +39,16 @@ class CoderService : IntentService("TextFileCoder") {
         when (intent?.action) {
             ACTION_DECOMPRESS -> {
                 val path = intent.getStringExtra(PATH)
-                onHandleDecompress(path)
+                onHandleDecompress(path!!)
             }
             ACTION_COMPRESS -> {
                 val path = intent.getStringExtra(PATH)
-                onHandleCompress(path)
+                onHandleCompress(path!!)
             }
         }
     }
 
-    fun onHandleCompress(path : String ){
+    private fun onHandleCompress(path : String ){
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -61,19 +62,14 @@ class CoderService : IntentService("TextFileCoder") {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
-
-        val fileToRead = path
         fileToWork = "${File(path).parent}/${File(path).name.replace(".txt", "_coded.hfm")}"
-        val inputText = readFileBin(fileToRead)
+        val inputText = readFileBin(path)
         Coder.compress(inputText)
 
         Log.d(LOG_TAG, "end of compressing")
-
-
-
     }
 
-    fun onHandleDecompress(path : String){
+    private fun onHandleDecompress(path : String){
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -86,10 +82,9 @@ class CoderService : IntentService("TextFileCoder") {
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-        val fileToRead = path
 
         fileToWork = "${File(path).parent}/${File(path).name.replace(".hfm", "_decoded.txt")}"
-        val inputText = readFileBin(fileToRead)
+        val inputText = readFileBin(path)
         Decoder.decode(inputText)
 
         Log.d(LOG_TAG, "end of compressing")
@@ -113,26 +108,23 @@ class CoderService : IntentService("TextFileCoder") {
 
 
     private fun readFileBin(fileToRead: String) : ByteArray{
+        var ba = byteArrayOf()
         try {
             //открываем поток для чтения
             val stream = DataInputStream(FileInputStream(File(fileToRead)))
-            val ba = stream.readBytes()
+            ba = stream.readBytes()
             stream.close()
-            return ba
         } catch (e: FileNotFoundException) {
             Log.d(LOG_TAG, "not found")
             e.printStackTrace()
-            return byteArrayOf()
         } catch (e: IOException) {
             Log.d(LOG_TAG, "IOE")
             e.printStackTrace()
-            return byteArrayOf()
         }
+        return ba
     }
 
-
     companion object {
-
         lateinit var builder : NotificationCompat.Builder
 
         @JvmStatic
@@ -173,7 +165,7 @@ class CoderService : IntentService("TextFileCoder") {
             }
         }
 
-        fun appendBinFile(path: String, data : ByteArray) {
+        private fun appendBinFile(path: String, data : ByteArray) {
             try {
                 val f = File(path)
                 f.createNewFile()
