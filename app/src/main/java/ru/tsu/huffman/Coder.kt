@@ -128,6 +128,7 @@ object Coder {
         var currentByte = -1
         var codedBytes = 0
         freeBits = 0
+        var newSize = 0
         for(byte in inputText){
             if(codedBytes % 60000 == 0) {
                 Log.d("my", "$codedBytes byte coded")
@@ -136,6 +137,7 @@ object Coder {
             for(bit in toCode!!){
                 if(outputText.size == 60000 && freeBits == 0){
                     CoderService.updateInfo(outputText, codedBytes, inputText.size)
+                    newSize += outputText.size
                     outputText = byteArrayOf()
                     currentByte = -1
                 }
@@ -154,7 +156,8 @@ object Coder {
         }
         Log.d("my", "$codedBytes byte coded")
         CoderService.updateInfo(outputText, 0,0)
-        return codedBytes
+        newSize += outputText.size
+        return newSize
     }
 
 
