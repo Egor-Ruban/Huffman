@@ -1,7 +1,7 @@
 package ru.tsu.huffman
 
 import android.util.Log
-import java.util.ArrayList
+import java.util.*
 
 @kotlin.ExperimentalUnsignedTypes
 object Decoder {
@@ -28,7 +28,7 @@ object Decoder {
         currentByte = 0
     }
 
-    private fun decodeText(inputText: ByteArray){
+    private fun decodeText(inputText: ByteArray) {
         var outputText = byteArrayOf()
         createTree()
         Log.d("my", "decoder tree was created")
@@ -50,7 +50,7 @@ object Decoder {
                     if (curNode.letter != null) {
                         outputText = outputText.plus(curNode.letter!!)
                         counter++
-                        if(counter % 40000 == 0) {
+                        if (counter % 40000 == 0) {
                             Log.d("my", "$counter symbols were decoded")
                         }
                         curNode = root
@@ -58,7 +58,7 @@ object Decoder {
                 }
             }
             currentByte++
-            if(currentByte % 40000 == 0){
+            if (currentByte % 40000 == 0) {
                 CoderService.updateInfo(outputText, currentByte, inputText.size)
                 outputText = byteArrayOf()
 
@@ -73,7 +73,7 @@ object Decoder {
     @UseExperimental(ExperimentalUnsignedTypes::class)
     private fun parseHeader(inputText: ByteArray) {
         codedSymbolsAmount = inputText[0].toUByte().toInt()
-        if(codedSymbolsAmount == 0) codedSymbolsAmount = 256
+        if (codedSymbolsAmount == 0) codedSymbolsAmount = 256
         val emptyBitsAndType = inputText[1]
         emptyBits = (emptyBitsAndType.toInt() shr 4).toByte()
         type = emptyBitsAndType.toInt() and 15
@@ -120,7 +120,7 @@ object Decoder {
     private fun createNodeArrayFirstType(inputText: ByteArray) {
         currentByte = 2
         var symbol: Byte = 0
-        var freq : Int
+        var freq: Int
         while (currentByte < 2 + 2 * codedSymbolsAmount) {
             when (currentByte % 2) {
                 0 -> symbol = inputText[currentByte]
@@ -133,7 +133,7 @@ object Decoder {
         }
     }
 
-    private fun createNodeArraySecondType(inputText: ByteArray){
+    private fun createNodeArraySecondType(inputText: ByteArray) {
         currentByte = 2
         var symbol: Byte = 0
         var freq = 0
@@ -151,7 +151,7 @@ object Decoder {
         }
     }
 
-    private fun createNodeArrayThirdType(inputText: ByteArray){
+    private fun createNodeArrayThirdType(inputText: ByteArray) {
         currentByte = 2
         var symbol: Byte = 0
         var freq = 0
@@ -171,7 +171,7 @@ object Decoder {
         }
     }
 
-    private fun createNodeArrayFourthType(inputText: ByteArray){
+    private fun createNodeArrayFourthType(inputText: ByteArray) {
         currentByte = 2
         var symbol: Byte = 0
         var freq = 0

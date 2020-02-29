@@ -4,11 +4,10 @@ import android.app.IntentService
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Intent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import java.io.*
@@ -23,7 +22,7 @@ private const val ACTION_COMPRESS = "ACTION_COMPRESS"
 
 private const val LOG_TAG = "myLogs"
 
-private lateinit var fileToWork : String
+private lateinit var fileToWork: String
 
 private var currentID = -1
 
@@ -48,7 +47,7 @@ class CoderService : IntentService("TextFileCoder") {
         }
     }
 
-    private fun onHandleCompress(path : String ){
+    private fun onHandleCompress(path: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -69,11 +68,12 @@ class CoderService : IntentService("TextFileCoder") {
         Log.d(LOG_TAG, "end of compressing")
     }
 
-    private fun onHandleDecompress(path : String){
+    private fun onHandleDecompress(path: String) {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(this, 0, intent, 0)
 
         builder = NotificationCompat.Builder(this, "CoderChannel")
             .setSmallIcon(R.drawable.ic_notification_24dp)
@@ -106,8 +106,7 @@ class CoderService : IntentService("TextFileCoder") {
     }
 
 
-
-    private fun readFileBin(fileToRead: String) : ByteArray{
+    private fun readFileBin(fileToRead: String): ByteArray {
         var ba = byteArrayOf()
         try {
             //открываем поток для чтения
@@ -125,10 +124,10 @@ class CoderService : IntentService("TextFileCoder") {
     }
 
     companion object {
-        lateinit var builder : NotificationCompat.Builder
+        lateinit var builder: NotificationCompat.Builder
 
         @JvmStatic
-        fun startDecompressing(context: Context, path : String, inputCode : ByteArray) {
+        fun startDecompressing(context: Context, path: String, inputCode: ByteArray) {
             val intent = Intent(context, CoderService::class.java).apply {
                 action = ACTION_DECOMPRESS
                 putExtra(INPUT_CODE, inputCode)
@@ -138,7 +137,7 @@ class CoderService : IntentService("TextFileCoder") {
         }
 
         @JvmStatic
-        fun startCompressing(context: Context, path : String, inputText : ByteArray) {
+        fun startCompressing(context: Context, path: String, inputText: ByteArray) {
             Log.d(LOG_TAG, "comp start")
             val intent = Intent(context, CoderService::class.java).apply {
                 action = ACTION_COMPRESS
@@ -148,7 +147,7 @@ class CoderService : IntentService("TextFileCoder") {
             context.startService(intent)
         }
 
-        private fun writeBinFile(path: String, data : ByteArray) {
+        private fun writeBinFile(path: String, data: ByteArray) {
             try {
                 val f = File(path)
                 f.createNewFile()
@@ -165,7 +164,7 @@ class CoderService : IntentService("TextFileCoder") {
             }
         }
 
-        private fun appendBinFile(path: String, data : ByteArray) {
+        private fun appendBinFile(path: String, data: ByteArray) {
             try {
                 val f = File(path)
                 f.createNewFile()
@@ -182,8 +181,8 @@ class CoderService : IntentService("TextFileCoder") {
             }
         }
 
-        fun updateInfo(toPrint : ByteArray, passed : Int, all : Int){
-            if(sendTimes == 0){
+        fun updateInfo(toPrint: ByteArray, passed: Int, all: Int) {
+            if (sendTimes == 0) {
                 writeBinFile(fileToWork, toPrint)
             } else {
                 appendBinFile(fileToWork, toPrint)
@@ -195,31 +194,31 @@ class CoderService : IntentService("TextFileCoder") {
             sendTimes++
         }
 
-        fun createNotification(all : Int){
+        fun createNotification(all: Int) {
             currentID++
-            with(NotificationManagerCompat.from(CoderService.builder.mContext)){
-                CoderService.builder.setProgress(all,0,false)
+            with(NotificationManagerCompat.from(CoderService.builder.mContext)) {
+                CoderService.builder.setProgress(all, 0, false)
                 notify(currentID, CoderService.builder.build())
             }
         }
 
-        fun sendLastDecodeNotification(){
-            with(NotificationManagerCompat.from(CoderService.builder.mContext)){
-                builder.setProgress(0, 0,false)
+        fun sendLastDecodeNotification() {
+            with(NotificationManagerCompat.from(CoderService.builder.mContext)) {
+                builder.setProgress(0, 0, false)
                 builder.setContentTitle("decompressing finished")
                 notify(currentID, CoderService.builder.build())
             }
         }
 
-        fun sendLastCodeNotification(ratio : Double){
-            with(NotificationManagerCompat.from(CoderService.builder.mContext)){
-                builder.setProgress(0, 0,false)
+        fun sendLastCodeNotification(ratio: Double) {
+            with(NotificationManagerCompat.from(CoderService.builder.mContext)) {
+                builder.setProgress(0, 0, false)
                 builder.setContentTitle("compressing finished. ratio : $ratio")
                 notify(currentID, CoderService.builder.build())
             }
         }
 
-        fun sendHeader(header : ByteArray){
+        fun sendHeader(header: ByteArray) {
             sendTimes++
             writeBinFile(fileToWork, header)
         }

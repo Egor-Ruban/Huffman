@@ -9,7 +9,7 @@ import androidx.fragment.app.DialogFragment
 class MyAlertDialogFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val title = arguments!!.getString("title")
-        return AlertDialog.Builder(getActivity())
+        return AlertDialog.Builder(activity)
             .setTitle(title)
             .setPositiveButton("OK"){dialog, which ->  }
             .setMessage("Replace User and then Click OK")

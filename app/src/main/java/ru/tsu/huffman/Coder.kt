@@ -1,7 +1,7 @@
 package ru.tsu.huffman
 
 import android.util.Log
-import java.util.ArrayList
+import java.util.*
 import kotlin.experimental.or
 
 object Coder {
@@ -9,12 +9,12 @@ object Coder {
     private var freeBits = 0
     private var size = 1
     private var type = 0
-    private var frequencyTable : Array<Pair<Byte, Int>> = arrayOf()
-    private var nodeArray : ArrayList<Node> = arrayListOf()
-    private lateinit var root : Node
+    private var frequencyTable: Array<Pair<Byte, Int>> = arrayOf()
+    private var nodeArray: ArrayList<Node> = arrayListOf()
+    private lateinit var root: Node
     private var codeTable: Map<Byte, String> = mapOf()
 
-    fun compress(inputText: ByteArray){
+    fun compress(inputText: ByteArray) {
         init()
         CoderService.createNotification(inputText.size)
         val frequencyTable = getFrequency(inputText)
@@ -36,55 +36,55 @@ object Coder {
         Log.d("my", "text was compressed")
 
         val outputSize = header + compressedText
-        val ratio : Double = size.toDouble()/outputSize.toDouble()
-        Log.d("my_logs","ratio is $ratio")
+        val ratio: Double = size.toDouble() / outputSize.toDouble()
+        Log.d("my_logs", "ratio is $ratio")
         CoderService.sendLastCodeNotification(ratio)
     }
 
-    private fun getFrequency(data : ByteArray) : IntArray{
-        val fullFrequencyTable = IntArray(256){0}
+    private fun getFrequency(data: ByteArray): IntArray {
+        val fullFrequencyTable = IntArray(256) { 0 }
         size = data.size
-        for(byte in data){
+        for (byte in data) {
             @UseExperimental(ExperimentalUnsignedTypes::class)
             fullFrequencyTable[byte.toUByte().toInt()]++
         }
 
-         type = when(fullFrequencyTable.max()){
+        type = when (fullFrequencyTable.max()) {
             null -> 0
             in 0..256 -> 1
             in 256..16000 -> 2
-            in 16000..16000000-> 3
+            in 16000..16000000 -> 3
             else -> 4  //у войны и мир - 3
         }
         Log.d("my", "байт затрачено для передачи частоты каждого кода: $type")
         return fullFrequencyTable
     }
 
-    private fun minimizeFrequencyTable(fullTable : IntArray){
-        for(byte in fullTable.indices){
-            if(fullTable[byte] > 0) {
+    private fun minimizeFrequencyTable(fullTable: IntArray) {
+        for (byte in fullTable.indices) {
+            if (fullTable[byte] > 0) {
                 frequencyTable = frequencyTable.plusElement(byte.toByte() to fullTable[byte])
 
             }
         }
     }
 
-    private fun sortFrequencyTable(){
+    private fun sortFrequencyTable() {
         frequencyTable.sortBy { it.second }
 
     }
 
-    private fun createNodeArray(){
-        for(element in frequencyTable){
+    private fun createNodeArray() {
+        for (element in frequencyTable) {
             nodeArray.add(Node(letter = element.first, frequency = element.second))
         }
     }
 
-    private fun sortNodeArray(){
+    private fun sortNodeArray() {
         nodeArray.sortBy { it.frequency }
     }
 
-    private fun mergeNodes(){
+    private fun mergeNodes() {
         val new = Node(null, nodeArray[0].frequency + nodeArray[1].frequency).apply {
             leftNode = nodeArray[0]
             rightNode = nodeArray[1]
@@ -93,29 +93,29 @@ object Coder {
         nodeArray.removeAt(0)
     }
 
-    private fun createTree(){
-        while(nodeArray.size > 1){
+    private fun createTree() {
+        while (nodeArray.size > 1) {
             mergeNodes()
             sortNodeArray()
         }
         root = nodeArray[0]
     }
 
-    private fun createCodeTable(){
+    private fun createCodeTable() {
         explorePath("", root)
     }
 
-    private fun countFreeBits(inputText: ByteArray) : Int{
+    private fun countFreeBits(inputText: ByteArray): Int {
         var length = 0
-        for(byte in inputText){
+        for (byte in inputText) {
             val code = codeTable[byte]
             length += code!!.length
         }
         return 8 - (length % 8)
     }
 
-    private fun explorePath(currentCode : String, node : Node){
-        if(node.leftNode == null){
+    private fun explorePath(currentCode: String, node: Node) {
+        if (node.leftNode == null) {
             codeTable = codeTable.plus(node.letter!! to currentCode)
         } else {
             explorePath("${currentCode}0", node.leftNode!!)
@@ -123,31 +123,32 @@ object Coder {
         }
     }
 
-    private fun codeArray(inputText : ByteArray) : Int{
+    private fun codeArray(inputText: ByteArray): Int {
         var outputText = byteArrayOf()
         var currentByte = -1
         var codedBytes = 0
         freeBits = 0
         var newSize = 0
-        for(byte in inputText){
-            if(codedBytes % 60000 == 0) {
+        for (byte in inputText) {
+            if (codedBytes % 60000 == 0) {
                 Log.d("my", "$codedBytes byte coded")
             }
             val toCode = codeTable[byte]
-            for(bit in toCode!!){
-                if(outputText.size == 60000 && freeBits == 0){
+            for (bit in toCode!!) {
+                if (outputText.size == 60000 && freeBits == 0) {
                     CoderService.updateInfo(outputText, codedBytes, inputText.size)
                     newSize += outputText.size
                     outputText = byteArrayOf()
                     currentByte = -1
                 }
-                if(freeBits == 0){
+                if (freeBits == 0) {
                     outputText = outputText.plus(0)
                     freeBits = 8
                     currentByte++
                 }
-                if(bit == '1') {
-                    outputText[currentByte] = outputText[currentByte].or((1 shl(freeBits-1)).toByte())
+                if (bit == '1') {
+                    outputText[currentByte] =
+                        outputText[currentByte].or((1 shl (freeBits - 1)).toByte())
                 }
                 freeBits--
 
@@ -155,21 +156,21 @@ object Coder {
             codedBytes++
         }
         Log.d("my", "$codedBytes byte coded")
-        CoderService.updateInfo(outputText, 0,0)
+        CoderService.updateInfo(outputText, 0, 0)
         newSize += outputText.size
         return newSize
     }
 
 
-    private fun createHeader() : Int{
+    private fun createHeader(): Int {
         var header = byteArrayOf()
         var typeAndFreeBits = 0
         Log.d("myLogs", "пустых бит в конце сообщения: $freeBits")
         typeAndFreeBits = typeAndFreeBits or type or (freeBits shl 4)
         header = header.plus(frequencyTable.size.toByte())
         header = header.plus(typeAndFreeBits.toByte())
-        when(type) {
-            4 ->{
+        when (type) {
+            4 -> {
                 for (pair in frequencyTable) {
                     header = header.plus(pair.first)
                     header = header.plus((pair.second shr 24).toByte())
@@ -206,8 +207,7 @@ object Coder {
     }
 
 
-
-    private fun init(){
+    private fun init() {
         freeBits = 0
         size = 1
         frequencyTable = arrayOf()
