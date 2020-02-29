@@ -6,7 +6,7 @@ import java.util.ArrayList
 @kotlin.ExperimentalUnsignedTypes
 object Decoder {
 
-    private var codedSymbolsAmount: Byte = 0
+    private var codedSymbolsAmount = 0
     private var emptyBits: Byte = 0
     private var nodeArray: ArrayList<Node> = arrayListOf()
     private var currentByte = 0
@@ -72,7 +72,8 @@ object Decoder {
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
     private fun parseHeader(inputText: ByteArray) {
-        codedSymbolsAmount = inputText[0]
+        codedSymbolsAmount = inputText[0].toUByte().toInt()
+        if(codedSymbolsAmount == 0) codedSymbolsAmount = 256
         val emptyBitsAndType = inputText[1]
         emptyBits = (emptyBitsAndType.toInt() shr 4).toByte()
         type = emptyBitsAndType.toInt() and 15
