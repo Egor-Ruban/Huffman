@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                     counter ++
                 }
                 if(counter == selectedFilePaths.size){
-                    Toast.makeText(this, getString(R.string.not_equals), Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, getString(R.string.equals), Toast.LENGTH_LONG).show()
                     tv_file.visibility = View.VISIBLE
                     tv_file.text = resultString + getString(R.string.equals)
                 }
